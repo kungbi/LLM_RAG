@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import sys
 from langchain_text_splitters.character import CharacterTextSplitter
-from src.utils import opensearch_api
+from utils import opensearch_api
 import PyPDF2
 import pandas as pd
 import json

@@ -1,11 +1,6 @@
 import streamlit as st
 from st_pages import Page, show_pages, add_page_title
-
-import sys
-import os
-
-sys.path.append(os.path.dirname(__file__))
-from chatapi import ChatAPI
+from utils.chatapi import ChatAPI
 
 
 def main():
