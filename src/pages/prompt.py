@@ -4,7 +4,7 @@ from utils.chatapi import ChatAPI
 
 
 def main():
-    st.title("💬 Llama3 7B Test")
+    st.title("💬 Llama3 7B")
     st.caption("🚀 A Streamlit chatbot powered by Llama3 7B")
 
     # st.session_state를 사용하여 history 상태 유지
