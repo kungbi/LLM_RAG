@@ -1,4 +1,5 @@
 import streamlit as st
+from utils.db_api import DBAPI, DB_Configuration
 
 # import pyodbc
 
@@ -6,20 +7,10 @@ import streamlit as st
 st.title("SQL Server Database Configuration")
 
 
-# Function to create a new database configuration
-def create_new_config(hostname, port, username, password, database_name):
-    return {
-        "hostname": hostname,
-        "port": port,
-        "username": username,
-        "password": password,
-        "database_name": database_name,
-    }
-
-
 # Initialize session state for database configurations
-if "db_configs" not in st.session_state:
-    st.session_state.db_configs = []
+if "db_api" not in st.session_state:
+    st.session_state.db_api = DBAPI()
+db_api = st.session_state.db_api
 
 # Input fields for a new database configuration
 hostname = st.text_input("Hostname", key="hostname")
@@ -28,30 +19,53 @@ username = st.text_input("Username", key="username")
 password = st.text_input("Password", type="password", key="password")
 database_name = st.text_input("Database Name", key="database_name")
 
+driver_options = ["ODBC Driver 18 for SQL Server", "ODBC Driver 17 for SQL Server"]
+driver = st.selectbox("ODBC Driver", driver_options, key="driver")
+
+
 # Add new configuration button
 if st.button("Add Configuration"):
-    new_config = create_new_config(hostname, port, username, password, database_name)
-    st.session_state.db_configs.append(new_config)
+    db_info = DB_Configuration(
+        hostname=hostname,
+        port=port,
+        username=username,
+        password=password,
+        database_name=database_name,
+        driver="ODBC Driver 18 for SQL Server",
+    )
+    db_api.add_configuration(db_info)
     st.success("Configuration added successfully!")
 
 # Display current configurations
 st.write("Current Configurations:")
-for idx, config in enumerate(st.session_state.db_configs):
-    st.write(f"Configuration {idx+1}: {config}")
+for idx, db_info in db_api.get_configurations():
+    with st.expander(f"Configuration {idx+1}"):
+        config_dict = db_info.to_dict()
+        config_table = f"""
+        | Key            | Value         |
+        |----------------|---------------|
+        | Hostname       | {config_dict['hostname']} |
+        | Port           | {config_dict['port']} |
+        | Username       | {config_dict['username']} |
+        | Database Name  | {config_dict['database_name']} |
+        | Driver         | {config_dict['driver']} |
+        """
+        st.markdown(config_table, unsafe_allow_html=True)
 
-    # Option to test connection for each configuration
-    if st.button(f"Test Connection {idx+1}"):
-        connection_string = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={config['hostname']},{config['port']};DATABASE={config['database_name']};UID={config['username']};PWD={config['password']};TrustServerCertificate=yes;"
-        try:
-            conn = pyodbc.connect(connection_string)
-            st.success(
-                f"Connected to SQL Server successfully for configuration {idx+1}!"
-            )
-        except Exception as e:
-            st.error(f"Failed to connect to SQL Server for configuration {idx+1}: {e}")
+        # Option to test connection for each configuration
+        if st.button(f"Test Connection {idx+1}"):
+            response = db_api.test_connection(idx)
+            if response["result"]:
+                st.success(
+                    f"Connected to SQL Server successfully for configuration {idx+1}!"
+                )
+            else:
+                st.error(
+                    f"Failed to connect to SQL Server for configuration {idx+1}: {response['error']}"
+                )
 
-    # Option to delete each configuration
-    if st.button(f"Delete Configuration {idx+1}"):
-        del st.session_state.db_configs[idx]
-        st.success(f"Configuration {idx+1} deleted successfully!")
-        st.experimental_rerun()  # Refresh the page to update the list
+        # Option to delete each configuration
+        if st.button(f"Delete Configuration {idx+1}"):
+            db_api.delete_configuration(idx)
+            st.success(f"Configuration {idx+1} deleted successfully!")
+            st.experimental_rerun()  # Refresh the page to update the list
