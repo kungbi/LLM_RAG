@@ -1,5 +1,6 @@
 from opensearchpy import OpenSearch
 from sentence_transformers import SentenceTransformer
+import env.opensearch_env as opensearch_env
 
 
 class SearchAPI:
@@ -45,14 +46,19 @@ class SearchAPI:
 def connect():
     ca_certs_path = "./src/utils/root-ca.pem"
     client = OpenSearch(
-        hosts=[{"host": "localhost", "port": 9200}],
-        http_auth=("admin", "StrongPassword123!"),
+        hosts=[
+            {
+                "host": opensearch_env.OPENSEARCH_HOST,
+                "port": opensearch_env.OPENSEARCH_PORT,
+            }
+        ],
+        http_auth=(opensearch_env.OPENSEARCH_USR, opensearch_env.OPENSEARCH_PWD),
         http_compress=True,
         use_ssl=True,
         verify_certs=True,
         ssl_assert_hostname=False,
         ssl_show_warn=False,
-        ca_certs=ca_certs_path,
+        ca_certs=opensearch_env.OPENSEARCH_CA_CERT_PATH,
     )
     model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     return SearchAPI(client, model)

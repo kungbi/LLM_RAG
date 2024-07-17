@@ -5,7 +5,7 @@ from utils import opensearch_api
 import PyPDF2
 import pandas as pd
 import json
-from app import INDEX_NAME
+from env.opensearch_env import INDEX_NAME
 
 
 if not "opensearch" in st.session_state:

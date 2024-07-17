@@ -2,8 +2,8 @@ import streamlit as st
 from utils.chatapi import ChatAPI
 import utils.opensearch_api as opensearch_api
 from utils.search_query import build_search_query
-from app import INDEX_NAME
 from utils.relevant_doc_api import merge_text_files
+from env.opensearch_env import INDEX_NAME
 
 
 def main():
@@ -43,7 +43,7 @@ def main():
             .get("buckets", [])
         )
         relev_docs = [data["key"] for data in response]
-        text = merge_text_files(relev_docs, token_limit=4000)
+        relev_docs_merged = merge_text_files(relev_docs, token_limit=4000)
 
         # st.session_state.messages.append({"role": "user", "content": prompt})
         # st.chat_message("user").write(prompt)

@@ -1,5 +1,5 @@
-from typing import Dict, List, Union
-from sqlalchemy import create_engine
+from typing import Dict, List, Union, Tuple
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 import pandas as pd
 
@@ -41,7 +41,7 @@ class DBAPI:
     def get_configuration(self, id):
         return self.configurations.get(id, None)
 
-    def get_configurations(self) -> List[Dict[int, DB_Configuration]]:
+    def get_configurations(self) -> List[Tuple[int, DB_Configuration]]:
         return list(self.configurations.items())
 
     def delete_configuration(self, id):
@@ -59,9 +59,14 @@ class DBAPI:
 
     def test_connection(self, id) -> Dict[str, Union[bool, Exception]]:
         db_info = self.get_configuration(id)
+        if db_info == None:
+            return {"result": False, "error": "error"}
+
         connection_url = self.get_connection_url(db_info)
         try:
             engine = create_engine(connection_url)
+            with engine.connect() as conn:
+                result = conn.execute(text("select 1;"))
             return {"result": True}
         except Exception as e:
             return {"result": False, "error": e}
@@ -78,20 +83,21 @@ class DBAPI:
             return {"result": False, "error": ex}
 
 
-# db_info = DB_Configuration(
-#     hostname="localhost",
-#     username="sa",
-#     password="Ithink%Th5r5f0re$Iam",
-#     port=1433,
-#     database_name="school",
-#     driver="ODBC Driver 18 for SQL Server",
-# )
-# db_api = DBAPI()
-# db_api.add_configuration(db_info)
-# db_api.add_configuration(db_info)
-# db_list = db_api.get_configurations()
+if __name__ == "__main__":
+    db_info = DB_Configuration(
+        hostname="localhost",
+        username="sa",
+        password="Ithink%Th5r5f0re$Iam",
+        port=1433,
+        database_name="school",
+        driver="ODBC Driver 18 for SQL Server",
+    )
+    db_api = DBAPI()
+    db_api.add_configuration(db_info)
+    db_api.add_configuration(db_info)
+    db_list = db_api.get_configurations()
 
-# print(db_api.test_connection(0))
+    print(db_api.test_connection(0))
 
-# df = db_api.execute(0, "SELECT * FROM PERSON;")
-# print(df)
+    # df = db_api.execute(0, "SELECT * FROM PERSON;")
+    # print(df)
