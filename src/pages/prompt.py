@@ -2,8 +2,8 @@ import streamlit as st
 from utils.chatapi import ChatAPI
 import utils.opensearch_api as opensearch_api
 from utils.search_query import build_search_query
-from app import INDEX_NAME
 from utils.relevant_doc_api import merge_text_files
+from env.opensearch_env import INDEX_NAME
 
 
 def main():

@@ -1,7 +1,5 @@
 from st_pages import Page, show_pages, add_page_title
 
-INDEX_NAME = "application"
-
 
 show_pages(
     [
