@@ -42,7 +42,7 @@ class SearchAPI:
         return self.client
 
 
-def get_client():
+def connect():
     ca_certs_path = "./src/utils/root-ca.pem"
     client = OpenSearch(
         hosts=[{"host": "localhost", "port": 9200}],

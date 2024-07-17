@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-import sys
 from langchain_text_splitters.character import CharacterTextSplitter
 from utils import opensearch_api
 import PyPDF2
@@ -9,7 +8,10 @@ import json
 
 
 index_name = "application"
-opensearch = opensearch_api.get_client()
+if not "opensearch" in st.session_state:
+    st.session_state.opensearch = opensearch_api.connect()
+
+opensearch = st.session_state.opensearch
 opensearch.create_index(index_name)
 
 
@@ -106,6 +108,11 @@ if submitted and files is not None:
                 "embedding": embedding,
             }
             opensearch.index_document(index_name, f"{uploaded_file.name}_{i}", action)
+
+        save_path = os.path.join("data", uploaded_file.name)
+        with open(save_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
         uploaded.append(uploaded_file.name)
     if uploaded:
         st.success(
@@ -119,11 +126,13 @@ if submitted and files is not None:
 
 # 파일 리스트 표시 및 삭제
 def delete_file(file_name):
-    delete_file_json(file_name)
     delete_query = {"query": {"term": {"filename": filename}}}
+    opensearch.get_client().delete_by_query(index=index_name, body=delete_query)
 
-    client = opensearch.get_client()
-    client.delete_by_query(index=index_name, body=delete_query)
+    delete_file_json(file_name)
+    file_to_delete = os.path.join("data", filename)
+    if os.path.exists(file_to_delete):
+        os.remove(file_to_delete)
     st.experimental_rerun()
 
 
