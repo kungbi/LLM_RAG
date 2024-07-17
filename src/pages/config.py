@@ -1,5 +1,6 @@
 import streamlit as st
-import pyodbc
+
+# import pyodbc
 
 # Initialize Streamlit app
 st.title("SQL Server Database Configuration")
