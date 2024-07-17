@@ -29,7 +29,6 @@ def main():
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.chat_message("user").write(prompt)
         with st.chat_message("assistant"):
-            # response = client.send_request_history(prompt)
             response = client.send_request_history_stream(prompt)
             placeholder = st.empty()
             full_response = ""
