@@ -29,7 +29,7 @@ def read_file(file):
 
 
 # 텍스트를 청크로 분할하는 함수
-def chunk_sentences(text, chunk_size=300, chunk_overlap=300):
+def chunk_sentences(text, chunk_size=300, chunk_overlap=100):
     text_splitter = CharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
