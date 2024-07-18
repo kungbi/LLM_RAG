@@ -1,7 +1,7 @@
 import streamlit as st
 from utils.db_api import DBAPI, DB_Configuration
 
-# import pyodbc
+import pyodbc
 
 # Initialize Streamlit app
 st.title("SQL Server Database Configuration")
@@ -31,7 +31,7 @@ if st.button("Add Configuration"):
         username=username,
         password=password,
         database_name=database_name,
-        driver="ODBC Driver 18 for SQL Server",
+        driver=driver,
     )
     db_api.add_configuration(db_info)
     st.success("Configuration added successfully!")

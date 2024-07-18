@@ -7,3 +7,4 @@ data
 root-ca.pem
 
 .DB_Store
+.idea
