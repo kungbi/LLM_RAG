@@ -2,7 +2,7 @@ from utils.tiktoken_api import num_tokens_from_string
 import os
 
 
-def merge_text_files(file_list=[], token_limit=4000):
+def merge_text_files(file_list=[], token_limit=5000):
     text = ""
     token_count = 0
 
@@ -20,6 +20,6 @@ def merge_text_files(file_list=[], token_limit=4000):
         if token_limit < token_count + count:
             break
         text += tmp
-        token_count = count
+        token_count += count
 
     return text, token_count

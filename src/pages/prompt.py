@@ -4,7 +4,8 @@ import utils.opensearch_api as opensearch_api
 from utils.search_query import build_search_query
 from utils.relevant_doc_api import merge_text_files
 from env.opensearch_env import INDEX_NAME
-from utils.text2sql import generate_sql_script,refine_sql_script
+from utils.text2sql import generate_sql_script
+from tabulate import tabulate
 import json
 
 
@@ -21,50 +22,61 @@ def main():
             url="http://localhost:1234/v1",
             model="lmstudio-community/Meta-Llama-3-8B-Instruct-BPE-fix-GGUF",
         )
-    client = st.session_state.client
 
     if "messages" not in st.session_state:
-        st.session_state.messages = [
-            {"role": "assistant", "content": "How can I help you?"}
-        ]
+        st.session_state.messages = []
 
     if "opensearch" not in st.session_state:
         st.session_state.opensearch = opensearch_api.connect()
     opensearch = st.session_state.opensearch
 
-    # for msg in st.session_state.messages:
-    #     st.chat_message(msg["role"]).write(msg["content"])
-
     # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            if message["role"] == "user":
+                st.markdown(message["content"])
+            else:
+                content = message["content"]
+                if content["result"]:
+                    st.markdown("###### SQL")
+                    st.code(content["query"], language="sql")
+
+                    if content["sql"]:
+                        st.markdown("###### SQL result")
+                        st.code(content["sql_result"])
+                    else:
+                        st.error(content["message"])
+                else:
+                    st.error(content["message"])
 
     # Get DB configuration from session state (assumed to be set in config.py)
     if "db_api" not in st.session_state:
-        st.error("Database configuration not found. Please set up the database in the config page first.")
+        st.error(
+            "Database configuration not found. Please set up the database in the config page first."
+        )
         return
 
     db_api = st.session_state.db_api
-
-    # Get available DB configurations
     db_configs = db_api.get_configurations()
     if not db_configs:
-        st.error("No database configurations found. Please add a configuration in the config page.")
+        st.error(
+            "No database configurations found. Please add a configuration in the config page."
+        )
         return
-
-    # Create a dropdown for selecting DB configuration
-    config_options = {f"Configuration {id} - {config.database_name}": id for id, config in db_configs}
-    selected_config = st.selectbox("Select Database Configuration", options=list(config_options.keys()))
-    selected_config_id = config_options[selected_config]
+    config_options = {
+        f"Configuration {id + 1} - {config.database_name}": id
+        for id, config in db_configs
+    }
+    selected_config = st.sidebar.selectbox(
+        "Select Database Configuration", options=list(config_options.keys())
+    )
 
     if prompt := st.chat_input():
-
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # opeansearch
+        # opensearch
         query = build_search_query(query_embedding=opensearch.encode(prompt))
         response = opensearch.search(INDEX_NAME, query)
         response = (
@@ -73,51 +85,47 @@ def main():
             .get("buckets", [])
         )
         relev_docs = [data["key"] for data in response]
+        text = merge_text_files(relev_docs, token_limit=4000)
 
-        text, token_count = merge_text_files(relev_docs, token_limit=4000)
+        with st.chat_message("assistant"):
+            sql_response = generate_sql_script(prompt, text)
+            full_response = {}
 
-        print(text)
+            try:
+                json_data = json.loads(sql_response)
+                if not "query" in json_data:
+                    raise Exception("no query in response.")
 
-        # generate_sql_script 함수 호출
-        response = generate_sql_script(prompt, text)
-        st.write(response)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+                full_response["result"] = True
+                full_response["query"] = json_data["query"]
+                st.markdown("###### SQL")
+                st.code(full_response["query"], language="sql")
 
-        if "query" in response:
-            response_dict=json.loads(response)
-            sql_query = response_dict["query"]
-            def execute_sql():
-                # Assume the first configuration (index 0) is used
-                result = db_api.execute(selected_config_id, sql_query)
-                if result["result"]:
-                    df = result["sql_result"]
-                    st.write("Query Result:")
-                    st.dataframe(df)
-                    st.session_state.messages.append({"role": "assistant",
-                                                      "content": f"Query executed successfully. Results:\n\n{df.to_markdown()}"})
+                db_execute_result = db_api.execute(
+                    config_options[selected_config], json_data["query"]
+                )
+                if db_execute_result["result"] == True:
+                    full_response["sql"] = True
+                    sql_result = db_execute_result["sql_result"]
+
+                    pretty_string = tabulate(
+                        sql_result, headers="keys", tablefmt="psql"
+                    )
+                    st.markdown("###### SQL result")
+
+                    full_response["sql_result"] = pretty_string
+                    st.code(full_response["sql_result"], language="sql")
                 else:
-                    error_message = f"Error executing query: {result['error']}"
-                    st.error(error_message)
-                    st.session_state.messages.append({"role": "assistant", "content": error_message})
+                    full_response["sql"] = False
+                    full_response["message"] = db_execute_result["error"]
 
-            st.button("Execute SQL", on_click=execute_sql)
-        else:
-            st.error("Failed to generate a valid SQL query.")
-            st.session_state.messages.append(
-                {"role": "assistant", "content": "Sorry, I couldn't generate a valid SQL query for your request."})
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
+                full_response["result"] = False
+                full_response["message"] = f"An error occurred: {e}"
 
-        # st.session_state.messages.append({"role": "user", "content": prompt})
-        # st.chat_message("user").write(prompt)
-        # with st.chat_message("assistant"):
-        #     response = client.send_request_history_stream(prompt)
-        #     placeholder = st.empty()
-        #     full_response = ""
-        #     for item in response:
-        #         full_response += item
-        #         placeholder.markdown(full_response)
-        #     placeholder.markdown(full_response)
-        # message = {"role": "assistant", "content": full_response}
-        # st.session_state.messages.append(message)
+        message = {"role": "assistant", "content": full_response}
+        st.session_state.messages.append(message)
 
 
 main()

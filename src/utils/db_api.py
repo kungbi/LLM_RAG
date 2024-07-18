@@ -2,6 +2,7 @@ from typing import Dict, List, Union, Tuple
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 import pandas as pd
+from tabulate import tabulate
 
 
 class DB_Configuration:
@@ -99,5 +100,14 @@ if __name__ == "__main__":
 
     print(db_api.test_connection(0))
 
-    # df = db_api.execute(0, "SELECT * FROM PERSON;")
-    # print(df)
+    result = db_api.execute(
+        0,
+        "SELECT COUNT(*) as student_count FROM Person WHERE Discriminator = 'student';",
+    )
+    if result["result"]:
+        df = result["sql_result"]
+        pretty_string = tabulate(df, headers="keys", tablefmt="psql")
+        print(pretty_string)
+
+    else:
+        print(result["error"])
