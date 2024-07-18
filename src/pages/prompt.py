@@ -6,6 +6,7 @@ from utils.relevant_doc_api import merge_text_files
 from env.opensearch_env import INDEX_NAME
 from utils.text2sql import generate_sql_script
 from tabulate import tabulate
+from utils.text2sql import generate_sql_script, txt2sql
 import json
 
 
@@ -123,6 +124,10 @@ def main():
                 st.error(f"An error occurred: {e}")
                 full_response["result"] = False
                 full_response["message"] = f"An error occurred: {e}"
+
+        # response = txt2sql(prompt,text,selected_config_id)
+        # st.write(response)
+        # st.session_state.messages.append({"role": "assistant", "content": response})
 
         message = {"role": "assistant", "content": full_response}
         st.session_state.messages.append(message)
