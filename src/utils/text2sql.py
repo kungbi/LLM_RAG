@@ -1,9 +1,7 @@
 import requests
-import json
-import streamlit as st
-from chatapi import ChatAPI
+from utils.chatapi import ChatAPI
 
-client=ChatAPI(
+client = ChatAPI(
     url="http://localhost:1234/v1",
     model="lmstudio-community/Meta-Llama-3-8B-Instruct-BPE-fix-GGUF"
 )
@@ -59,7 +57,7 @@ def generate_sql_script(query, text):
 
 
 def refine_sql_script(original_script, error_message):
-    summary = ChatAPI.history
+
 
     prompt_template = f"""
     You are a MSSQL expert.
@@ -71,9 +69,6 @@ def refine_sql_script(original_script, error_message):
 
     ===Error Message
     {error_message}
-
-    ===Chat history
-    {summary}
 
     ===Response Guidelines
     1. If the provided context is sufficient, please correct the original query and enclose it in string without any explanation.
