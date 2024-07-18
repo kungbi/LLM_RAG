@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d0b1f354-05f3-4b07-adcd-69f41c1b5281" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pages/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pages/prompt.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/prompt.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/utils/text2sql.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/text2sql.py" afterDir="false" />
     </list>

@@ -4,7 +4,7 @@ import utils.opensearch_api as opensearch_api
 from utils.search_query import build_search_query
 from utils.relevant_doc_api import merge_text_files
 from env.opensearch_env import INDEX_NAME
-from utils.text2sql import generate_sql_script,refine_sql_script
+from utils.text2sql import generate_sql_script,txt2sql
 import json
 
 
@@ -78,33 +78,37 @@ def main():
 
         print(text)
 
-        # generate_sql_script 함수 호출
-        response = generate_sql_script(prompt, text)
+        response = txt2sql(prompt,text,selected_config_id)
         st.write(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-        if "query" in response:
-            response_dict=json.loads(response)
-            sql_query = response_dict["query"]
-            def execute_sql():
-                # Assume the first configuration (index 0) is used
-                result = db_api.execute(selected_config_id, sql_query)
-                if result["result"]:
-                    df = result["sql_result"]
-                    st.write("Query Result:")
-                    st.dataframe(df)
-                    st.session_state.messages.append({"role": "assistant",
-                                                      "content": f"Query executed successfully. Results:\n\n{df.to_markdown()}"})
-                else:
-                    error_message = f"Error executing query: {result['error']}"
-                    st.error(error_message)
-                    st.session_state.messages.append({"role": "assistant", "content": error_message})
-
-            st.button("Execute SQL", on_click=execute_sql)
-        else:
-            st.error("Failed to generate a valid SQL query.")
-            st.session_state.messages.append(
-                {"role": "assistant", "content": "Sorry, I couldn't generate a valid SQL query for your request."})
+        # generate_sql_script 함수 호출
+        # response = generate_sql_script(prompt, text)
+        # st.write(response)
+        # st.session_state.messages.append({"role": "assistant", "content": response})
+        #
+        # if "query" in response:
+        #     response_dict=json.loads(response)
+        #     sql_query = response_dict["query"]
+        #     def execute_sql():
+        #         # Assume the first configuration (index 0) is used
+        #         result = db_api.execute(selected_config_id, sql_query)
+        #         if result["result"]:
+        #             df = result["sql_result"]
+        #             st.write("Query Result:")
+        #             st.dataframe(df)
+        #             st.session_state.messages.append({"role": "assistant",
+        #                                               "content": f"Query executed successfully. Results:\n\n{df.to_markdown()}"})
+        #         else:
+        #             error_message = f"Error executing query: {result['error']}"
+        #             st.error(error_message)
+        #             st.session_state.messages.append({"role": "assistant", "content": error_message})
+        #
+        #     st.button("Execute SQL", on_click=execute_sql)
+        # else:
+        #     st.error("Failed to generate a valid SQL query.")
+        #     st.session_state.messages.append(
+        #         {"role": "assistant", "content": "Sorry, I couldn't generate a valid SQL query for your request."})
 
         # st.session_state.messages.append({"role": "user", "content": prompt})
         # st.chat_message("user").write(prompt)
