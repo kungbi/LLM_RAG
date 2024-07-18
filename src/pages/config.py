@@ -31,7 +31,7 @@ if st.button("Add Configuration"):
         username=username,
         password=password,
         database_name=database_name,
-        driver="ODBC Driver 18 for SQL Server",
+        driver=driver,
     )
     db_api.add_configuration(db_info)
     st.success("Configuration added successfully!")
