@@ -8,3 +8,9 @@ root-ca.pem
 
 .DB_Store
 .idea
+.idea/LLM_RAG.iml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/vcs.xml
+.idea/workspace.xml
