@@ -77,7 +77,7 @@ def main():
             .get("buckets", [])
         )
         relev_docs = [data["key"] for data in response]
-        text = merge_text_files(relev_docs, token_limit=4000)
+        text = merge_text_files(relev_docs, token_limit=15000)
 
         with st.chat_message("assistant"):
             full_response = {}
