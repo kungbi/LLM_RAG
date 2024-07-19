@@ -89,21 +89,23 @@ def main():
         text = merge_text_files(relev_docs, token_limit=4000)
 
         with st.chat_message("assistant"):
-            sql_response = generate_sql_script(prompt, text)
             full_response = {}
+            response = txt2sql(prompt, text, config_options[selected_config])
+
+            if response["result"] == None:
+                full_response["result"] = False
+                full_response["message"] = "shit"
+
+            sql_response = response["sql_script"]
 
             try:
-                json_data = json.loads(sql_response)
-                if not "query" in json_data:
-                    raise Exception("no query in response.")
-
                 full_response["result"] = True
-                full_response["query"] = json_data["query"]
+                full_response["query"] = sql_response
                 st.markdown("###### SQL")
                 st.code(full_response["query"], language="sql")
 
                 db_execute_result = db_api.execute(
-                    config_options[selected_config], json_data["query"]
+                    config_options[selected_config], sql_response
                 )
                 if db_execute_result["result"] == True:
                     full_response["sql"] = True
@@ -124,10 +126,6 @@ def main():
                 st.error(f"An error occurred: {e}")
                 full_response["result"] = False
                 full_response["message"] = f"An error occurred: {e}"
-
-        # response = txt2sql(prompt,text,selected_config_id)
-        # st.write(response)
-        # st.session_state.messages.append({"role": "assistant", "content": response})
 
         message = {"role": "assistant", "content": full_response}
         st.session_state.messages.append(message)

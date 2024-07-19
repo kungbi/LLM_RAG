@@ -3,6 +3,7 @@ from utils.chatapi import ChatAPI
 from utils.tiktoken_api import num_tokens_from_string
 import streamlit as st
 import json
+import re
 
 client = ChatAPI(url="http://localhost:1234/v1", model="Qwen/Qwen2-7B-Instruct-GGUF")
 
@@ -34,8 +35,6 @@ def generate_sql_script(query, text):
     {query}
     """
 
-    headers = {"Content-Type": "application/json"}
-
     data = {
         "messages": [
             {"role": "system", "content": "You are a MSSQL expert."},
@@ -60,13 +59,12 @@ def refine_sql_script(question, text, error_message):
     prompt_template = f"""
     You are a MSSQL expert.
 
-    Please help to correct the original MSSQL query according to Error message. Your response should ONLY be based on the given context and follow the response guidelines and format instructions. You must not include the original input.
+    Please help to correct the original MSSQL query according to Error message. 
+    Your response should ONLY be based on the given context and follow the response guidelines and format instructions. 
+    You must not include the original input.
 
-    ===Original Question
-    {question}
-
-    ===Error Message
-    {error_message}
+    ===Tables
+    {text}
 
     ===Response Guidelines
     1. If the provided context is sufficient, please correct the original query and enclose it in string without any explanation.
@@ -81,9 +79,12 @@ def refine_sql_script(question, text, error_message):
         "explanation": "An explanation of failing to generate the query."
     }}
 
-    """
+    ===Original Question
+    {question}
 
-    headers = {"Content-Type": "application/json"}
+    ===Error Message
+    {error_message}
+    """
 
     data = {
         "messages": [
@@ -94,6 +95,7 @@ def refine_sql_script(question, text, error_message):
         "max_tokens": -1,
         "stream": True,  # Set to True if you need streaming
     }
+    print(str(data))
 
     try:
         response = client.send_request(str(data))
@@ -117,28 +119,41 @@ def txt2sql(question, txt, id):
             response = generate_sql_script(question, txt)
         else:
             response = refine_sql_script(question, txt, error_history)
+        print("response:", response)
 
         if response is None:
             return "SQL 생성 중 오류가 발생했습니다."
 
         try:
             response_json = json.loads(response)
+        except Exception as e:
+            pattern = r"\{[^{}]*\}"
+            match = re.search(pattern, response)
+            if match:
+                json_object_str = match.group(0)
+                response_json = json.loads(json_object_str)
+            else:
+                print("No JSON object found.")
+
+        print(response_json)
+
+        try:
             sql_script = response_json.get("query") or response_json.get(
                 "refined_query"
             )
 
             if not sql_script:
-                return response_json.get(
-                    "explanation", "SQL 스크립트를 생성할 수 없습니다."
-                )
+                raise Exception("IDK")
 
             sql_result = db_api.execute(id, sql_script)
+            if sql_result["result"] == False:
+                raise Exception(sql_result["error"])
+
             return {
                 "result": sql_result,
                 "sql_script": sql_script,
                 "attempts": attempts + 1,
             }
-
         except Exception as e:
             error_message = str(e)
             error_history.append(
