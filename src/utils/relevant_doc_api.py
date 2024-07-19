@@ -1,8 +1,9 @@
-from utils.tiktoken_api import num_tokens_from_string
+from utils.token_counter import num_tokens_from_string
+from utils.token_counter import num_tokens_from_string_qwen
 import os
 
 
-def merge_text_files(file_list=[], token_limit=4000):
+def merge_text_files(file_list=[], token_limit=5000):
     text = ""
     token_count = 0
 
@@ -16,10 +17,10 @@ def merge_text_files(file_list=[], token_limit=4000):
 
         with open(file_path, "r") as f:
             tmp += f.read() + "\n"
-        count = num_tokens_from_string(tmp)
+        count = num_tokens_from_string_qwen(tmp)
         if token_limit < token_count + count:
             break
         text += tmp
-        token_count = count
+        token_count += count
 
     return text, token_count
