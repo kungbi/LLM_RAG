@@ -65,6 +65,7 @@ def refine_sql_script(question, text, error_message):
     Your response should ONLY be based on the given context and follow the response guidelines and format instructions. 
     You must not include the original input.
 
+
     ===Tables
     {text}
 
