@@ -4,25 +4,17 @@ import utils.opensearch_api as opensearch_api
 from utils.search_query import build_search_query
 from utils.relevant_doc_api import merge_text_files
 from env.opensearch_env import INDEX_NAME
-from utils.text2sql import generate_sql_script
 from tabulate import tabulate
-from utils.text2sql import generate_sql_script, txt2sql
-import json
+from utils.text2sql import txt2sql
 
 
 def main():
-    st.title("💬 Llama3 7B")
-    st.caption("🚀 A Streamlit chatbot powered by Llama3 7B")
+    st.title("💬 Text2SQL")
+    st.caption("🚀 A Streamlit chatbot powered by Qwen2 7B")
 
     # st.session_state를 사용하여 history 상태 유지
     if "history" not in st.session_state:
         st.session_state.history = []
-
-    if "client" not in st.session_state:
-        st.session_state.client = ChatAPI(
-            url="http://localhost:1234/v1",
-            model="lmstudio-community/Meta-Llama-3-8B-Instruct-BPE-fix-GGUF",
-        )
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
