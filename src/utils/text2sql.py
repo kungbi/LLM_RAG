@@ -1,11 +1,13 @@
 import requests
 from utils.chatapi import ChatAPI
+
 from utils.token_counter import num_tokens_from_string
 import streamlit as st
 import json
 import re
 
 client = ChatAPI(url="http://localhost:1234/v1", model="Qwen/Qwen2-7B-Instruct-GGUF")
+
 
 
 def generate_sql_script(query, text):
@@ -58,6 +60,7 @@ def generate_sql_script(query, text):
 
 def refine_sql_script(question, text, error_message):
 
+
     prompt_template = f"""
     You are a MSSQL expert.
 
@@ -65,8 +68,16 @@ def refine_sql_script(question, text, error_message):
     Your response should ONLY be based on the given context and follow the response guidelines and format instructions. 
     You must not include the original input.
 
+<<<<<<< HEAD
+    ===Original Question
+    {question}
+
+    ===Error Message
+    {error_message}
+=======
     ===Tables
     {text}
+>>>>>>> main
 
     ===Response Guidelines
     1. If the provided context is sufficient, please generate a valid query enclosed in string without any explanations for the question. 
@@ -115,7 +126,7 @@ def txt2sql(question, txt, id):
     max_attempts = 4
     attempts = 0
     error_history = []
-    sql_script = ""  # 여기서 sql_script를 초기화합니다
+    sql_script = ""
 
     db_api = st.session_state.db_api
 
@@ -123,36 +134,40 @@ def txt2sql(question, txt, id):
         if attempts == 0:
             response = generate_sql_script(question, txt)
         else:
-            print("text2sql retry")
+            print("txt2sql retry")
             response = refine_sql_script(question, txt, error_history)
         print("response:", response)
 
         if response is None:
-            return "SQL 생성 중 오류가 발생했습니다."
+            return {
+                "result": None,
+                "error": "SQL 생성 중 오류가 발생했습니다.",
+                "error_history": error_history,
+                "sql_script": sql_script
+            }
 
         try:
             response_json = json.loads(response)
-        except Exception as e:
+        except Exception:
             pattern = r"\{[^{}]*\}"
             match = re.search(pattern, response)
             if match:
                 json_object_str = match.group(0)
                 try:
                     response_json = json.loads(json_object_str)
-                except Exception as e:
+                except Exception:
                     response_json = None
             else:
                 print("No JSON object found.")
+                response_json = None
 
         print(response_json)
 
         try:
-            sql_script = response_json.get("query") or response_json.get(
-                "refined_query"
-            )
+            sql_script = response_json.get("query") or response_json.get("refined_query")
 
             if not sql_script:
-                raise Exception("IDK")
+                raise Exception("SQL 스크립트를 생성할 수 없습니다.")
 
             sql_result = db_api.execute(id, sql_script)
             if sql_result["result"] == False:
@@ -162,22 +177,25 @@ def txt2sql(question, txt, id):
                 "result": sql_result,
                 "sql_script": sql_script,
                 "attempts": attempts + 1,
+                "error": None,
+                "error_history": error_history
             }
         except Exception as e:
             error_message = str(e)
             error_history.append(
                 {
                     "attempt": attempts + 1,
-                    "sql_script": sql_script,  # 이제 sql_script는 항상 정의되어 있습니다
+                    "sql_script": sql_script,
                     "error_message": error_message,
                 }
             )
+
             attempts += 1
 
-    # 최대 시도 횟수를 초과한 경우
     return {
         "result": None,
         "error": f"최대 시도 횟수({max_attempts})를 초과했습니다.",
         "error_history": error_history,
-        "sql_script": sql_script,  # 마지막으로 시도한 sql_script를 포함합니다
+        "sql_script": sql_script,
     }
+
