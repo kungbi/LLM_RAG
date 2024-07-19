@@ -33,16 +33,16 @@ def main():
             else:
                 content = message["content"]
                 if content["result"]:
-                    st.markdown("###### SQL")
-                    st.code(content["query"], language="sql")
 
                     if content["sql"]:
+                        st.markdown("###### SQL")
+                        st.code(content["query"], language="sql")
                         st.markdown("###### SQL result")
                         st.code(content["sql_result"])
                     else:
-                        st.error(content["message"])
+                        st.markdown(content["message"])
                 else:
-                    st.error(content["message"])
+                    st.markdown(content["message"])
 
     # Get DB configuration from session state (assumed to be set in config.py)
     if "db_api" not in st.session_state:
@@ -95,14 +95,20 @@ def main():
 
             try:
                 full_response["result"] = True
-                full_response["query"] = sql_response
-                st.markdown("###### SQL")
-                st.code(full_response["query"], language="sql")
+                # full_response["query"] = sql_response
+                # st.markdown("###### SQL")
+                # st.code(full_response["query"], language="sql")
 
                 db_execute_result = db_api.execute(
                     config_options[selected_config], sql_response
                 )
+                print("db_result: ", db_execute_result)
                 if db_execute_result["result"] == True:
+
+                    full_response["query"] = sql_response
+                    st.markdown("###### SQL")
+                    st.code(full_response["query"], language="sql")
+
                     full_response["sql"] = True
                     sql_result = db_execute_result["sql_result"]
 
@@ -116,7 +122,7 @@ def main():
                 else:
                     full_response["sql"] = False
                     full_response["message"] = db_execute_result["error"]
-                    st.error(db_execute_result["error"])
+                    st.markdown(db_execute_result["error"])
 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
