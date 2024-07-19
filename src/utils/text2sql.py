@@ -56,7 +56,17 @@ def generate_sql_script(query, text):
         return None
 
 
-def refine_sql_script(question, text, error_message):
+def format_error_history(error_history):
+    formatted = "===Error History\n"
+    for entry in error_history:
+        formatted += f"Attempt {entry['attempt']}:\n"
+        formatted += f"SQL Script:\n{entry['sql_script']}\n\n"
+        formatted += f"Error Message:\n{entry['error_message']}\n\n"
+    return formatted.strip()
+
+
+def refine_sql_script(question, text, error_history):
+    formatted_error_history = format_error_history(error_history)
 
     prompt_template = f"""
     You are a MSSQL expert.
@@ -68,6 +78,9 @@ def refine_sql_script(question, text, error_message):
 
     ===Tables
     {text}
+    
+    
+    {formatted_error_history}
 
     ===Response Guidelines
     1. If the provided context is sufficient, please generate a valid query enclosed in string without any explanations for the question. 
@@ -89,8 +102,6 @@ def refine_sql_script(question, text, error_message):
     ===Original Question
     {question}
 
-    ===Error Message
-    {error_message}
     """
 
     data = {
@@ -116,7 +127,7 @@ def txt2sql(question, txt, id):
     max_attempts = 4
     attempts = 0
     error_history = []
-    sql_script = ""  # 여기서 sql_script를 초기화합니다
+    sql_script = ""
 
     db_api = st.session_state.db_api
 
@@ -145,7 +156,7 @@ def txt2sql(question, txt, id):
             else:
                 print("No JSON object found.")
 
-        print(response_json)
+        # print(response_json)
 
         try:
             sql_script = response_json.get("query") or response_json.get(
@@ -156,6 +167,7 @@ def txt2sql(question, txt, id):
                 raise Exception("IDK")
 
             sql_result = db_api.execute(id, sql_script)
+            print("db response:", sql_result)
             if sql_result["result"] == False:
                 raise Exception(sql_result["error"])
 
@@ -173,6 +185,7 @@ def txt2sql(question, txt, id):
                     "error_message": error_message,
                 }
             )
+            print(error_history)
             attempts += 1
 
     # 최대 시도 횟수를 초과한 경우
