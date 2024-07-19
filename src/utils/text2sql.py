@@ -1,6 +1,6 @@
 import requests
 from utils.chatapi import ChatAPI
-from utils.tiktoken_api import num_tokens_from_string
+from utils.token_counter import num_tokens_from_string
 import streamlit as st
 import json
 import re
@@ -24,6 +24,8 @@ def generate_sql_script(query, text):
     5. Please format the query before responding.
     6. Please always respond with a valid well-formed JSON object with the following format.
     7. Please return the JSON response without using code block formatting. The response should be directly loadable as JSON.
+    8. Generate a SQL query based on the given prompt. Ensure that the SQL query includes the column names in the results. 
+        For example, if the prompt is 'Get the count of students from the PERSON table,' the SQL query should be: SELECT COUNT(*) AS StudentCount FROM PERSON WHERE Discriminator='Student'. The result should include the column name 'StudentCount'.
 
     ===Response Format
     {{
@@ -67,11 +69,15 @@ def refine_sql_script(question, text, error_message):
     {text}
 
     ===Response Guidelines
-    1. If the provided context is sufficient, please correct the original query and enclose it in string without any explanation.
+    1. If the provided context is sufficient, please generate a valid query enclosed in string without any explanations for the question. 
     2. If the provided context is insufficient, please explain why it can't be generated.
     3. Please use the most relevant table(s).
     5. Please format the query before responding.
-    6. Please always respond with a valid well-formed JSON object with the following format
+    6. Please always respond with a valid well-formed JSON object with the following format.
+    7. Please return the JSON response without using code block formatting. The response should be directly loadable as JSON.
+    8. Generate a SQL query based on the given prompt. Ensure that the SQL query includes the column names in the results.
+    9. If the provided context is sufficient, please correct the original query and enclose it in string without any explanation.
+    10. If the provided context is insufficient, please explain why it can't be generated.
 
     ===Response Format
     {{
@@ -95,7 +101,6 @@ def refine_sql_script(question, text, error_message):
         "max_tokens": -1,
         "stream": True,  # Set to True if you need streaming
     }
-    print(str(data))
 
     try:
         response = client.send_request(str(data))
@@ -118,6 +123,7 @@ def txt2sql(question, txt, id):
         if attempts == 0:
             response = generate_sql_script(question, txt)
         else:
+            print("text2sql retry")
             response = refine_sql_script(question, txt, error_history)
         print("response:", response)
 
@@ -131,7 +137,10 @@ def txt2sql(question, txt, id):
             match = re.search(pattern, response)
             if match:
                 json_object_str = match.group(0)
-                response_json = json.loads(json_object_str)
+                try:
+                    response_json = json.loads(json_object_str)
+                except Exception as e:
+                    response_json = None
             else:
                 print("No JSON object found.")
 

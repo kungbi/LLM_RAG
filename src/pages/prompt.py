@@ -113,6 +113,7 @@ def main():
                 else:
                     full_response["sql"] = False
                     full_response["message"] = db_execute_result["error"]
+                    st.error(db_execute_result["error"])
 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
