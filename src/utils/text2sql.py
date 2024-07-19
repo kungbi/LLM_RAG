@@ -68,16 +68,9 @@ def refine_sql_script(question, text, error_message):
     Your response should ONLY be based on the given context and follow the response guidelines and format instructions. 
     You must not include the original input.
 
-<<<<<<< HEAD
-    ===Original Question
-    {question}
 
-    ===Error Message
-    {error_message}
-=======
     ===Tables
     {text}
->>>>>>> main
 
     ===Response Guidelines
     1. If the provided context is sufficient, please generate a valid query enclosed in string without any explanations for the question. 
