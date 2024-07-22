@@ -1,11 +1,13 @@
 import streamlit as st
-from utils.chatapi import ChatAPI
 import utils.opensearch_api as opensearch_api
 from utils.search_query import build_search_query
-from utils.relevant_doc_api import merge_text_files
+from utils.docs_api import merge_text_files
 from env.opensearch_env import INDEX_NAME
 from tabulate import tabulate
 from utils.text2sql import txt2sql
+from utils.token_limit import TokenLimit
+from utils.document_selection import document_selection
+import env.llm_env as LLM_ENV
 
 
 def main():
@@ -77,11 +79,16 @@ def main():
             .get("buckets", [])
         )
         relev_docs = [data["key"] for data in response]
-        text = merge_text_files(relev_docs, token_limit=15000)
+        text = merge_text_files(relev_docs)
+
+        token_limit = TokenLimit()
+        splited_text = token_limit.split_document_by_tokens(
+            text=text, max_tokens=LLM_ENV.LLM_TEXT2SQL_DOCS_MAX_TOKENS
+        )
 
         with st.chat_message("assistant"):
             full_response = {}
-            response = txt2sql(prompt, text, config_options[selected_config])
+            response = txt2sql(prompt, splited_text, config_options[selected_config])
 
             if response["result"] == None:
                 full_response["result"] = False
@@ -91,9 +98,6 @@ def main():
 
             try:
                 full_response["result"] = True
-                # full_response["query"] = sql_response
-                # st.markdown("###### SQL")
-                # st.code(full_response["query"], language="sql")
 
                 db_execute_result = db_api.execute(
                     config_options[selected_config], sql_response
@@ -115,7 +119,9 @@ def main():
                     st.code(full_response["sql_result"], language="sql")
                 else:
                     full_response["sql"] = False
-                    full_response["message"] = db_execute_result["error"]  # source of error message
+                    full_response["message"] = db_execute_result[
+                        "error"
+                    ]  # source of error message
                     st.markdown(db_execute_result["error"])
 
             except Exception as e:

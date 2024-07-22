@@ -1,4 +1,5 @@
 from openai import OpenAI
+from utils.token_limit import TokenLimit
 
 
 class ChatAPI:
@@ -6,6 +7,7 @@ class ChatAPI:
         self.client = OpenAI(base_url=url, api_key="lm-studio")
         self.model = model
         self.history = []
+        self.token_limit = TokenLimit()
 
     def send_request_history(self, message):
         self.history.append({"role": "user", "content": message})
@@ -36,6 +38,8 @@ class ChatAPI:
     def send_request(self, message):
         request = [{"role": "user", "content": message}]
 
+        if not self.token_limit.is_available_full_request(message):
+            return
         completion = self.client.chat.completions.create(
             model=self.model, messages=request
         )
