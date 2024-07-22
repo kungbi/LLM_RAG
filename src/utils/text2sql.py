@@ -1,11 +1,11 @@
 import requests
 from utils.chatapi import ChatAPI
-from utils.token_counter import num_tokens_from_string
 import streamlit as st
 import json
 import re
+import env.llm_env as LLM_ENV
 
-client = ChatAPI(url="http://localhost:1234/v1", model="Qwen/Qwen2-7B-Instruct-GGUF")
+client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
 
 
 def generate_sql_script(query, text):
@@ -137,7 +137,6 @@ def txt2sql(question, txt, id):
         else:
             print("text2sql retry")
             response = refine_sql_script(question, txt, error_history)
-        print("response:", response)
 
         if response is None:
             return "SQL 생성 중 오류가 발생했습니다."
@@ -155,8 +154,6 @@ def txt2sql(question, txt, id):
                     response_json = None
             else:
                 print("No JSON object found.")
-
-        # print(response_json)
 
         try:
             sql_script = response_json.get("query") or response_json.get(
@@ -185,7 +182,6 @@ def txt2sql(question, txt, id):
                     "error_message": error_message,
                 }
             )
-            print(error_history)
             attempts += 1
 
     # 최대 시도 횟수를 초과한 경우
