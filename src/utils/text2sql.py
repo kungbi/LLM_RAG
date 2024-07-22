@@ -124,7 +124,7 @@ def refine_sql_script(question, text, error_history):
 
 
 def txt2sql(question, txt, id):
-    max_attempts = 4
+    max_attempts = 3
     attempts = 0
     error_history = []
     sql_script = ""
@@ -140,7 +140,13 @@ def txt2sql(question, txt, id):
         print("response:", response)
 
         if response is None:
-            return "SQL 생성 중 오류가 발생했습니다."
+            yield {
+                "result": False,
+                "sql_script": None,
+                "error_message": "Error in generating SQL Script",
+            }
+            attempts += 1
+            continue
 
         try:
             response_json = json.loads(response)
@@ -155,43 +161,51 @@ def txt2sql(question, txt, id):
                     response_json = None
             else:
                 print("No JSON object found.")
-
-        # print(response_json)
+                yield {
+                    "result": False,
+                    "sql_script": None,
+                    "error_message": "Failed to parse JSON response",
+                }
+                attempts += 1
+                continue
 
         try:
-            sql_script = response_json.get("query") or response_json.get(
-                "refined_query"
-            )
+            sql_script = response_json.get("query") or response_json.get("refined_query")
 
             if not sql_script:
-                raise Exception("IDK")
+                raise Exception("No SQL script found in response")
 
             sql_result = db_api.execute(id, sql_script)
             print("db response:", sql_result)
             if sql_result["result"] == False:
                 raise Exception(sql_result["error"])
 
-            return {
-                "result": sql_result,
+            yield {
+                "result": True,
                 "sql_script": sql_script,
-                "attempts": attempts + 1,
+                "error_message": None,
             }
+            return  # 성공 시 함수 종료
+
         except Exception as e:
             error_message = str(e)
-            error_history.append(
-                {
-                    "attempt": attempts + 1,
-                    "sql_script": sql_script,  # 이제 sql_script는 항상 정의되어 있습니다
-                    "error_message": error_message,
-                }
-            )
-            print(error_history)
-            attempts += 1
+            error_history.append({
+                "attempt": attempts + 1,
+                "sql_script": sql_script,
+                "error_message": error_message,
+            })
+
+            yield {
+                "result": True,
+                "sql_script": sql_script,
+                "error_message": error_message,
+            }
+
+        attempts += 1
 
     # 최대 시도 횟수를 초과한 경우
-    return {
-        "result": None,
-        "error": f"최대 시도 횟수({max_attempts})를 초과했습니다.",
-        "error_history": error_history,
-        "sql_script": sql_script,  # 마지막으로 시도한 sql_script를 포함합니다
+    yield {
+        "result": True,
+        "error_message": "maximum number exceeded",
+        "sql_script": sql_script,
     }
