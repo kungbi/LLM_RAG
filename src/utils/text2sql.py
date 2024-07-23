@@ -1,11 +1,11 @@
 import requests
 from utils.chatapi import ChatAPI
-from utils.token_counter import num_tokens_from_string
 import streamlit as st
 import json
 import re
+import env.llm_env as LLM_ENV
 
-client = ChatAPI(url="http://localhost:1234/v1", model="Qwen/Qwen2-7B-Instruct-GGUF")
+client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
 
 
 def generate_sql_script(query, text):
@@ -137,7 +137,6 @@ def txt2sql(question, txt, id):
         else:
             print("text2sql retry")
             response = refine_sql_script(question, txt, error_history)
-        print("response:", response)
 
         if response is None:
             yield {
@@ -170,7 +169,9 @@ def txt2sql(question, txt, id):
                 continue
 
         try:
-            sql_script = response_json.get("query") or response_json.get("refined_query")
+            sql_script = response_json.get("query") or response_json.get(
+                "refined_query"
+            )
 
             if not sql_script:
                 raise Exception("No SQL script found in response")
@@ -189,11 +190,13 @@ def txt2sql(question, txt, id):
 
         except Exception as e:
             error_message = str(e)
-            error_history.append({
-                "attempt": attempts + 1,
-                "sql_script": sql_script,
-                "error_message": error_message,
-            })
+            error_history.append(
+                {
+                    "attempt": attempts + 1,
+                    "sql_script": sql_script,
+                    "error_message": error_message,
+                }
+            )
 
             yield {
                 "result": True,
