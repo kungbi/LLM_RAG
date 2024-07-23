@@ -124,7 +124,7 @@ def refine_sql_script(question, text, error_history):
 
 
 def txt2sql(question, txt, id):
-    max_attempts = 3
+    max_attempts = 2
     attempts = 0
     error_history = []
     sql_script = ""

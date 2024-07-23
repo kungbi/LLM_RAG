@@ -39,7 +39,7 @@ def main():
                         st.markdown("##### SQL result")
                         st.code(content["sql_result"])
                     else:
-                        st.markdown("##### SQL Execution Fail")
+                        st.markdown(f"##### SQL Execution Fail {content["num"]}")
                         st.code(content["query"], language="sql")
                         st.markdown(content["message"])
                 else:
@@ -97,6 +97,7 @@ def main():
                 "query": "",
                 "sql_result": "",
                 "message": "",
+                "num": 1
             }
 
             num = 1
@@ -107,8 +108,10 @@ def main():
                     st.markdown(f"##### SQL Generation Fail {num}")
                     st.markdown(response["error_message"])
 
+                    full_response["num"] = num
                     message = {"role": "assistant", "content": full_response}
                     st.session_state.messages.append(message)
+                    num+=1
                     continue
 
                 else:
@@ -140,16 +143,17 @@ def main():
                     st.markdown("###### SQL")
                     st.code(full_response["query"], language="sql")
 
-                    st.markdown("###### SQL result")
+                    st.markdown("##### SQL result")
                     st.code(full_response["sql_result"], language="sql")
 
                 elif full_response["message"]:
-                    st.markdown(f"###### SQL Execution Fail : {num}")
+                    st.markdown(f"##### SQL Execution Fail : {num}")
                     st.code(full_response["query"], language="sql")
 
                     st.markdown(full_response["message"])
 
                 # 세션 상태에 메시지 추가
+                full_response["num"] = num
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
