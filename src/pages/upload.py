@@ -24,6 +24,9 @@ def read_file(file):
     elif file.type == "text/csv":
         df = pd.read_csv(file)
         return df.to_string()
+    elif file.type == "application/json":  # json
+        data = file.read()
+        return json.loads(data)
     return ""
 
 
@@ -35,7 +38,7 @@ if not os.path.exists("data"):
 with st.form("my-form", clear_on_submit=True):
     files = st.file_uploader(
         "FILE UPLOADER",
-        type=["csv", "txt", "pdf"],
+        type=["csv", "txt", "pdf", "json"],
         accept_multiple_files=True,
         label_visibility="collapsed",
         key="file_uploader",
@@ -92,7 +95,7 @@ if submitted and files is not None:
         add_file_json(uploaded_file.name)
         text = read_file(uploaded_file)
 
-        # opensearch
+        opensearch.index_document_chunk(INDEX_NAME, uploaded_file.name, text)
 
         save_path = os.path.join("data", uploaded_file.name)
         with open(save_path, "wb") as f:
