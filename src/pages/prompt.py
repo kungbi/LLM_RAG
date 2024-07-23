@@ -83,16 +83,6 @@ def main():
         relev_docs = [data["key"] for data in response]
         text = merge_text_files(relev_docs)
 
-<<<<<<< HEAD
-        with st.chat_message("assistant"):
-            full_response = {}
-            response = txt2sql(prompt, text, config_options[selected_config])
-=======
-        token_limit = TokenLimit()
-        # splited_text = token_limit.split_document_by_tokens(
-        #     text=text, max_tokens=LLM_ENV.LLM_TEXT2SQL_DOCS_MAX_TOKENS
-        # )
-
         with st.chat_message("assistant"):
             response_generator = txt2sql(prompt, text, config_options[selected_config])
             full_response = {
@@ -103,7 +93,6 @@ def main():
                 "message": "",
                 "num": 1
             }
->>>>>>> 53cfcb63def5cc26c7ab33c048f437e0a546bd28
 
             num = 1
 
