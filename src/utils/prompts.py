@@ -1,4 +1,4 @@
-def generate_sql_script(query, text):
+def generate_sql_script(query, text, context):
     prompt_template = f"""
     You are a MSSQL expert.
 
@@ -6,6 +6,10 @@ def generate_sql_script(query, text):
 
     ===Tables
     {text}
+    
+    ===Context
+    {context}
+    
 
     ===Response Guidelines
     1. If the provided context is sufficient, please generate a valid query enclosed in string without any explanations for the question. 
@@ -30,7 +34,7 @@ def generate_sql_script(query, text):
     return prompt_template
 
 
-def generate_refine_sql_script(query, text, formatted_error_history):
+def generate_refine_sql_script(query, text, formatted_error_history, context):
     prompt_template = f"""
     You are a MSSQL expert.
 

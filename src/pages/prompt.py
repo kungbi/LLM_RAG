@@ -7,6 +7,7 @@ from tabulate import tabulate
 from utils.text2sql import txt2sql
 from utils.token_limit import TokenLimit
 import env.llm_env as LLM_ENV
+from utils.history_api import ConversationManager
 
 
 
@@ -15,8 +16,11 @@ def main():
     st.caption("🚀 A Streamlit chatbot powered by Qwen2 7B")
 
     # st.session_state를 사용하여 history 상태 유지
-    if "history" not in st.session_state:
-        st.session_state.history = []
+    # if "history" not in st.session_state:
+    #     st.session_state.history = []
+
+    history = ConversationManager()
+
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -24,6 +28,7 @@ def main():
     if "opensearch" not in st.session_state:
         st.session_state.opensearch = opensearch_api.connect()
     opensearch = st.session_state.opensearch
+
 
     # Display chat history
     for message in st.session_state.messages:
@@ -72,6 +77,7 @@ def main():
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
+            history.add_message_to_memory(role="user", content=prompt)
 
         # opensearch
         query = build_search_query(query_embedding=opensearch.encode(prompt))
@@ -84,8 +90,9 @@ def main():
         relev_docs = [data["key"] for data in response]
         text = merge_text_files(relev_docs)
 
-        with st.chat_message("assistant"):
+        context = history.generate_summary(user_input=prompt)
 
+        with st.chat_message("assistant"):
 
             response_generator = txt2sql(prompt, text, config_options[selected_config], context)
             num = 1
@@ -140,10 +147,10 @@ def main():
                 # 세션 상태에 메시지 추가
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
+                history.add_message_to_memory(role="assistant",content="message")
 
                 num += 1
 
-                print("session : ", message)
 
 
 main()

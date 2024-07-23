@@ -9,9 +9,9 @@ from utils import prompts
 client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
 
 
-def generate_sql_script(query, text):
+def generate_sql_script(query, text, context):
     # prompt_template = prompts.generate_sql_script(query, text)
-    prompt_template = prompts.generate_sql_script(query, text)
+    prompt_template = prompts.generate_sql_script(query, text, context)
 
     data = {
         "messages": [
@@ -41,11 +41,11 @@ def format_error_history(error_history):
     return formatted.strip()
 
 
-def refine_sql_script(question, text, error_history):
+def refine_sql_script(question, text, error_history, context):
     formatted_error_history = format_error_history(error_history)
 
     prompt_template = prompts.generate_refine_sql_script(
-        question, text, formatted_error_history
+        question, text, formatted_error_history, context
     )
 
     data = {
@@ -67,7 +67,7 @@ def refine_sql_script(question, text, error_history):
         return None
 
 
-def txt2sql(question, txt, id):
+def txt2sql(question, txt, id, context):
     max_attempts = 2
     attempts = 0
     error_history = []
@@ -77,10 +77,10 @@ def txt2sql(question, txt, id):
 
     while attempts < max_attempts:
         if attempts == 0:
-            response = generate_sql_script(question, txt)
+            response = generate_sql_script(question, txt, context)
         else:
             print("text2sql retry")
-            response = refine_sql_script(question, txt, error_history)
+            response = refine_sql_script(question, txt, error_history, context)
         print(response)
 
         if response is None:
