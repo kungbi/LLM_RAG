@@ -1,12 +1,11 @@
 import streamlit as st
 import utils.opensearch_api as opensearch_api
-from utils.search_query import build_search_query
+from utils.opensearch_query import build_search_query
 from utils.docs_api import merge_text_files
 from env.opensearch_env import INDEX_NAME
 from tabulate import tabulate
 from utils.text2sql import txt2sql
 from utils.token_limit import TokenLimit
-from utils.document_selection import document_selection
 import env.llm_env as LLM_ENV
 
 
@@ -81,14 +80,9 @@ def main():
         relev_docs = [data["key"] for data in response]
         text = merge_text_files(relev_docs)
 
-        token_limit = TokenLimit()
-        splited_text = token_limit.split_document_by_tokens(
-            text=text, max_tokens=LLM_ENV.LLM_TEXT2SQL_DOCS_MAX_TOKENS
-        )
-
         with st.chat_message("assistant"):
             full_response = {}
-            response = txt2sql(prompt, splited_text, config_options[selected_config])
+            response = txt2sql(prompt, text, config_options[selected_config])
 
             if response["result"] == None:
                 full_response["result"] = False

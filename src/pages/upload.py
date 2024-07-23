@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-from langchain_text_splitters.character import CharacterTextSplitter
 from utils import opensearch_api
 import PyPDF2
 import pandas as pd
@@ -26,14 +25,6 @@ def read_file(file):
         df = pd.read_csv(file)
         return df.to_string()
     return ""
-
-
-# 텍스트를 청크로 분할하는 함수
-def chunk_sentences(text, chunk_size=300, chunk_overlap=100):
-    text_splitter = CharacterTextSplitter(
-        chunk_size=chunk_size, chunk_overlap=chunk_overlap
-    )
-    return text_splitter.split_text(text)
 
 
 # 데이터 디렉토리가 없으면 생성
@@ -97,17 +88,11 @@ if submitted and files is not None:
         if uploaded_file.name in read_file_json():
             not_uploaded.append(uploaded_file.name)
             continue
+
         add_file_json(uploaded_file.name)
         text = read_file(uploaded_file)
-        chunks = chunk_sentences(text)
-        for i, chunk in enumerate(chunks):
-            embedding = opensearch.encode(chunk)
-            action = {
-                "filename": uploaded_file.name,
-                "chunk": chunk,
-                "embedding": embedding,
-            }
-            opensearch.index_document(INDEX_NAME, f"{uploaded_file.name}_{i}", action)
+
+        # opensearch
 
         save_path = os.path.join("data", uploaded_file.name)
         with open(save_path, "wb") as f:
