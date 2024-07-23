@@ -81,6 +81,7 @@ def txt2sql(question, txt, id):
         else:
             print("text2sql retry")
             response = refine_sql_script(question, txt, error_history)
+        print(response)
 
         if response is None:
             yield {
