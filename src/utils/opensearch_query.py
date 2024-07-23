@@ -52,12 +52,13 @@ def build_create_query():
 
 def build_create_query2():
     return {
+        "settings": {"index": {"knn": True}},
         "mappings": {
             "properties": {
                 "document": {"type": "text"},
-                "embedding": {"type": "knn_vector", "dims": 384},
+                "embedding": {"type": "knn_vector", "dimension": 384},
             }
-        }
+        },
     }
 
 

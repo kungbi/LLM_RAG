@@ -42,6 +42,31 @@ class SearchAPI:
     def get_client(self):
         return self.client
 
+    def create_index2(self, index_name):
+        if not self.client.indices.exists(index=index_name):
+            index_body = opensearch_query.build_create_query2()
+            self.client.indices.create(index=index_name, body=index_body)
+
+    def index_tables(self, text):
+        embedding = self.encode(text).tolist()
+        body = opensearch_query.build_index_query2(text, embedding)
+        self.client.index(index="application_tables", body=body)
+
+    def index_column(self, text):
+        embedding = self.encode(text).tolist()
+        body = opensearch_query.build_index_query2(text, embedding)
+        self.client.index(index="application_columns", body=body)
+
+    def search_tables(self, query: str):
+        embedding = self.encode(query).tolist()
+        body = opensearch_query.build_search_query2(embedding, 5)
+        return self.client.search(index="application_tables", body=body)
+
+    def search_columns(self, query):
+        embedding = self.encode(query).tolist()
+        body = opensearch_query.build_search_query2(embedding, 10)
+        return self.client.search(index="application_columns", body=body)
+
 
 # 텍스트를 청크로 분할하는 함수
 def chunk_sentences(text, chunk_size=300, chunk_overlap=100):
