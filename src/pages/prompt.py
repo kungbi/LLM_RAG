@@ -9,6 +9,7 @@ from utils.token_limit import TokenLimit
 import env.llm_env as LLM_ENV
 
 
+
 def main():
     st.title("💬 Text2SQL")
     st.caption("🚀 A Streamlit chatbot powered by Qwen2 7B")
@@ -84,7 +85,9 @@ def main():
         text = merge_text_files(relev_docs)
 
         with st.chat_message("assistant"):
-            response_generator = txt2sql(prompt, text, config_options[selected_config])
+
+
+            response_generator = txt2sql(prompt, text, config_options[selected_config], context)
             num = 1
 
             for response in response_generator:
