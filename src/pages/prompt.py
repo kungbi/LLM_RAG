@@ -38,11 +38,11 @@ def main():
                         st.markdown("##### SQL result")
                         st.code(content["sql_result"])
                     else:
-                        st.markdown(f"##### SQL Execution Fail {content["num"]}")
+                        st.markdown(f"##### SQL Execution Fail: {content["num"]}")
                         st.code(content["query"], language="sql")
                         st.markdown(content["message"])
                 else:
-                    st.markdown("##### SQL Execution Fail")
+                    st.markdown(f"##### SQL Generation Fail")
                     st.markdown(content["message"])
 
     # Get DB configuration from session state (assumed to be set in config.py)
@@ -85,32 +85,26 @@ def main():
 
         with st.chat_message("assistant"):
             response_generator = txt2sql(prompt, text, config_options[selected_config])
-            full_response = {
-                "result": False,
-                "sql": False,
-                "query": "",
-                "sql_result": "",
-                "message": "",
-                "num": 1
-            }
-
             num = 1
 
             for response in response_generator:
+                full_response = {
+                    "result": False,
+                    "sql": False,
+                    "query": "",
+                    "sql_result": "",
+                    "message": "",
+                    "num": num
+                }
+
                 if response["result"] is False:
                     full_response["message"] = response["error_message"]
                     st.markdown(f"##### SQL Generation Fail {num}")
                     st.markdown(response["error_message"])
-
-                    full_response["num"] = num
-                    message = {"role": "assistant", "content": full_response}
-                    st.session_state.messages.append(message)
-                    num+=1
-                    continue
-
                 else:
                     sql_response = response.get("sql_script")
                     full_response["query"] = sql_response
+                    full_response["result"] = True
 
                     try:
                         db_execute_result = db_api.execute(
@@ -118,40 +112,35 @@ def main():
                         )
 
                         if db_execute_result["result"]:
-                            full_response["result"] = True
                             full_response["sql"] = True
                             sql_result = db_execute_result["sql_result"]
                             pretty_string = tabulate(
                                 sql_result, headers="keys", tablefmt="psql"
                             )
                             full_response["sql_result"] = pretty_string
-
                         else:
                             full_response["message"] = db_execute_result["error"]
 
                     except Exception as e:
-                        error_message = f"An error occurred: {e}"
-                        full_response["message"] = error_message
+                        full_response["message"] = f"An error occurred: {e}"
 
                 if full_response["sql"]:
-                    st.markdown("###### SQL")
+                    st.markdown("##### SQL")
                     st.code(full_response["query"], language="sql")
-
                     st.markdown("##### SQL result")
                     st.code(full_response["sql_result"], language="sql")
-
                 elif full_response["message"]:
                     st.markdown(f"##### SQL Execution Fail : {num}")
                     st.code(full_response["query"], language="sql")
-
                     st.markdown(full_response["message"])
 
                 # 세션 상태에 메시지 추가
-                full_response["num"] = num
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
                 num += 1
+
+                print("session : ", message)
 
 
 main()
