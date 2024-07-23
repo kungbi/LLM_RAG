@@ -34,13 +34,16 @@ def main():
                 content = message["content"]
                 if content["result"]:
                     if content["sql"]:
-                        st.markdown("###### SQL")
+                        st.markdown("##### SQL")
                         st.code(content["query"], language="sql")
-                        st.markdown("###### SQL result")
+                        st.markdown("##### SQL result")
                         st.code(content["sql_result"])
                     else:
+                        st.markdown(f"##### SQL Execution Fail {content["num"]}")
+                        st.code(content["query"], language="sql")
                         st.markdown(content["message"])
                 else:
+                    st.markdown("##### SQL Execution Fail")
                     st.markdown(content["message"])
 
     # Get DB configuration from session state (assumed to be set in config.py)
@@ -82,55 +85,79 @@ def main():
         text = merge_text_files(relev_docs)
 
         token_limit = TokenLimit()
-        splited_text = token_limit.split_document_by_tokens(
-            text=text, max_tokens=LLM_ENV.LLM_TEXT2SQL_DOCS_MAX_TOKENS
-        )
+        # splited_text = token_limit.split_document_by_tokens(
+        #     text=text, max_tokens=LLM_ENV.LLM_TEXT2SQL_DOCS_MAX_TOKENS
+        # )
 
         with st.chat_message("assistant"):
-            full_response = {}
-            response = txt2sql(prompt, splited_text, config_options[selected_config])
+            response_generator = txt2sql(prompt, text, config_options[selected_config])
+            full_response = {
+                "result": False,
+                "sql": False,
+                "query": "",
+                "sql_result": "",
+                "message": "",
+                "num": 1
+            }
 
-            if response["result"] == None:
-                full_response["result"] = False
-                full_response["message"] = "shit"
+            num = 1
 
-            sql_response = response["sql_script"]
+            for response in response_generator:
+                if response["result"] is False:
+                    full_response["message"] = response["error_message"]
+                    st.markdown(f"##### SQL Generation Fail {num}")
+                    st.markdown(response["error_message"])
 
-            try:
-                full_response["result"] = True
+                    full_response["num"] = num
+                    message = {"role": "assistant", "content": full_response}
+                    st.session_state.messages.append(message)
+                    num+=1
+                    continue
 
-                db_execute_result = db_api.execute(
-                    config_options[selected_config], sql_response
-                )
-                if db_execute_result["result"] == True:
+                else:
+                    sql_response = response.get("sql_script")
                     full_response["query"] = sql_response
+
+                    try:
+                        db_execute_result = db_api.execute(
+                            config_options[selected_config], sql_response
+                        )
+
+                        if db_execute_result["result"]:
+                            full_response["result"] = True
+                            full_response["sql"] = True
+                            sql_result = db_execute_result["sql_result"]
+                            pretty_string = tabulate(
+                                sql_result, headers="keys", tablefmt="psql"
+                            )
+                            full_response["sql_result"] = pretty_string
+
+                        else:
+                            full_response["message"] = db_execute_result["error"]
+
+                    except Exception as e:
+                        error_message = f"An error occurred: {e}"
+                        full_response["message"] = error_message
+
+                if full_response["sql"]:
                     st.markdown("###### SQL")
                     st.code(full_response["query"], language="sql")
 
-                    full_response["sql"] = True
-                    sql_result = db_execute_result["sql_result"]
-
-                    pretty_string = tabulate(
-                        sql_result, headers="keys", tablefmt="psql"
-                    )
-                    st.markdown("###### SQL result")
-
-                    full_response["sql_result"] = pretty_string
+                    st.markdown("##### SQL result")
                     st.code(full_response["sql_result"], language="sql")
-                else:
-                    full_response["sql"] = False
-                    full_response["message"] = db_execute_result[
-                        "error"
-                    ]  # source of error message
-                    st.markdown(db_execute_result["error"])
 
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
-                full_response["result"] = False
-                full_response["message"] = f"An error occurred: {e}"
+                elif full_response["message"]:
+                    st.markdown(f"##### SQL Execution Fail : {num}")
+                    st.code(full_response["query"], language="sql")
 
-        message = {"role": "assistant", "content": full_response}
-        st.session_state.messages.append(message)
+                    st.markdown(full_response["message"])
+
+                # 세션 상태에 메시지 추가
+                full_response["num"] = num
+                message = {"role": "assistant", "content": full_response}
+                st.session_state.messages.append(message)
+
+                num += 1
 
 
 main()
