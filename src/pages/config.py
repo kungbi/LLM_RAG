@@ -66,3 +66,4 @@ for idx, db_info in db_api.get_configurations():
         if st.button(f"Delete Configuration {idx+1}"):
             db_api.delete_configuration(idx)
             st.success(f"Configuration {idx+1} deleted successfully!")
+            st.experimental_rerun()

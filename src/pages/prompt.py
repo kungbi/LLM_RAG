@@ -1,11 +1,14 @@
 import pyodbc
 import streamlit as st
+import json
+import re
 import utils.opensearch_api as opensearch_api
 from utils.opensearch_query import build_search_query
 from utils.docs_api import merge_text_files
 from env.opensearch_env import INDEX_NAME
 from tabulate import tabulate
 from utils.text2sql import txt2sql
+from utils import answer
 from utils.token_limit import TokenLimit
 import env.llm_env as LLM_ENV
 from utils.history_api import ConversationManager
@@ -33,6 +36,7 @@ def main():
         st.session_state.opensearch = opensearch_api.connect()
     opensearch = st.session_state.opensearch
 
+    tokenlimit = TokenLimit()
 
     # Display chat history
     for message in st.session_state.messages:
@@ -47,15 +51,16 @@ def main():
                         st.code(content["query"], language="sql")
                         st.markdown("##### SQL result")
                         st.code(content["sql_result"])
+                        st.markdown("##### Answer")
+                        st.code(content["answer"], language="text")
                     else:
-                        st.markdown(f"##### SQL Execution Fail: {content["num"]}")
+                        st.markdown(f"##### SQL Execution Fail: {content['num']}")
                         st.code(content["query"], language="sql")
                         st.markdown(content["message"])
                 else:
                     st.markdown(f"##### SQL Generation Fail")
                     st.markdown(content["message"])
 
-    # Get DB configuration from session state (assumed to be set in config.py)
     if "db_api" not in st.session_state:
         st.error(
             "Database configuration not found. Please set up the database in the config page first."
@@ -78,11 +83,12 @@ def main():
     )
 
     if prompt := st.chat_input():
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        
         context = memoryManager.get_full_conversation_history()
         print("chat history: ")
         memoryManager.print_conversation_history()
 
-        st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
             memoryManager.add_message_to_memory(role="user", content=prompt) #add history
@@ -98,11 +104,11 @@ def main():
         relev_docs = [data["key"] for data in response]
         text = merge_text_files(relev_docs)
 
-
+        splited_text = tokenlimit.split_document_by_tokens(text)
 
         with st.chat_message("assistant"):
 
-            response_generator = txt2sql(prompt, text, config_options[selected_config], context)
+            response_generator = txt2sql(prompt, splited_text, config_options[selected_config], context)
             num = 1
 
             for response in response_generator:
@@ -112,7 +118,8 @@ def main():
                     "query": "",
                     "sql_result": "",
                     "message": "",
-                    "num": num
+                    "num": num,
+                    "answer": "",
                 }
 
                 if response["result"] is False:
@@ -123,6 +130,8 @@ def main():
                     sql_response = response.get("sql_script")
                     full_response["query"] = sql_response
                     full_response["result"] = True
+                    st.markdown("##### SQL")
+                    st.code(full_response["query"], language="sql")
 
                     try:
                         db_execute_result = db_api.execute(
@@ -136,44 +145,56 @@ def main():
                                 sql_result, headers="keys", tablefmt="psql"
                             )
                             full_response["sql_result"] = pretty_string
+                            st.markdown("##### SQL result")
+                            st.code(full_response["sql_result"])
+
+                            try:
+                                answer_response = answer.generate_answer(
+                                    prompt,
+                                    full_response["query"],
+                                    full_response["sql_result"],
+                                )
+                                print(answer_response)
+                                full_response["answer"] = json.loads(answer_response)[
+                                    "answer"
+                                ]
+                            except Exception as e:
+                                pattern = r"\{[^{}]*\}"
+                                match = re.search(pattern, answer_response)
+                                if match:
+                                    json_object_str = match.group(0)
+                                    try:
+                                        full_response["answer"] = json.loads(
+                                            json_object_str
+                                        )["answer"]
+                                    except Exception as e:
+                                        full_response["answer"] = (
+                                            f"An error occurred: {e}"
+                                        )
+                                else:
+                                    full_response["answer"] = f"An error occurred: {e}"
+                            st.markdown("##### Answer")
+                            st.code(full_response["answer"], language="text")
+
                         else:
                             full_response["message"] = f"An error occurred: {db_execute_result["error"]}"
 
                     except Exception as e:
                         full_response["message"] = f"An error occurred: {e}"
 
-                if full_response["sql"]:
-                    st.markdown("##### SQL")
-                    st.code(full_response["query"], language="sql")
-                    st.markdown("##### SQL result")
-                    st.code(full_response["sql_result"], language="sql")
-                elif full_response["message"]:
+                if full_response["message"]:
                     st.markdown(f"##### SQL Execution Fail : {num}")
                     st.code(full_response["query"], language="sql")
                     st.markdown(full_response["message"])
 
-                # 세션 상태에 메시지 추가
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
-                print(type(full_response))
-                print("full_response:", full_response)
-
-                if isinstance(full_response, dict):
-                    # message 항목이 예외 객체인지 확인 후 문자열로 변환
-                    if isinstance(full_response.get('message'), pyodbc.ProgrammingError):
-                        full_response['message'] = str(full_response['message'])
-
-                    # for item in full_response.items():
-                        # print(item, type(item[1]))
-                    full_response_str = json.dumps(full_response)
-                else:
-                    full_response_str = full_response
+                full_response_str = json.dumps(full_response)
 
                 memoryManager.add_message_to_memory(role="assistant",content=full_response_str)
 
                 num += 1
-
 
 
 main()
