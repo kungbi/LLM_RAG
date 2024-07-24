@@ -101,26 +101,26 @@ def document_selection_prompt_template(question: str, document: str):
 
 def generate_answer_prompt_template(question: str, data: str):
     template = f"""
-    You are an expert in data analysis.
+    You are an expert business assistant.
 
-    Please generate an answer to the given question using the provided data. 
+    Please generate a detailed and accurate answer to the given question using the provided data. 
     Your response should ONLY be based on the given context and follow the response guidelines and format instructions.
 
     ===Data
     {data}
 
     ===Response Guidelines
-    1. If the provided context is sufficient, please generate a direct and accurate answer for the question without any additional explanations.
-    2. If the provided context is insufficient, please explain why it can't be answered.
+    1. If the provided context is sufficient, please generate a direct and informative answer to the question in complete sentences.
+    2. If the provided context is insufficient, please explain why the question can't be answered.
     3. Please use the most relevant information from the provided data.
     4. Please format the answer clearly and concisely.
     5. Always respond with a valid well-formed JSON object with the following format.
     6. Please return the JSON response without using code block formatting. The response should be directly loadable as JSON.
-    7. Ensure that the answer directly addresses the question and includes all necessary details.
+    7. Ensure that the answer directly addresses the question and includes all necessary details in a professional manner.
 
     ===Response Format
     {{
-        "answer": "Your direct and accurate answer to the question."
+        "answer": "Your detailed and accurate answer in complete sentences."
     }}
 
     ===Question

@@ -38,7 +38,7 @@ def main():
                         st.markdown("##### SQL result")
                         st.code(content["sql_result"])
                         st.markdown("##### Answer")
-                        st.code(content["answer"])
+                        st.code(content["answer"], language="text")
                     else:
                         st.markdown(f"##### SQL Execution Fail: {content['num']}")
                         st.code(content["query"], language="sql")
