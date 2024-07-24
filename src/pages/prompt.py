@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import re
 import utils.opensearch_api as opensearch_api
 from utils.opensearch_query import build_search_query
 from utils.docs_api import merge_text_files
@@ -7,6 +8,7 @@ from env.opensearch_env import INDEX_NAME
 from tabulate import tabulate
 from utils.text2sql import txt2sql
 from utils import answer
+from utils.token_limit import TokenLimit
 
 
 def main():
@@ -23,6 +25,8 @@ def main():
     if "opensearch" not in st.session_state:
         st.session_state.opensearch = opensearch_api.connect()
     opensearch = st.session_state.opensearch
+
+    tokenlimit = TokenLimit()
 
     # Display chat history
     for message in st.session_state.messages:
@@ -47,7 +51,6 @@ def main():
                     st.markdown(f"##### SQL Generation Fail")
                     st.markdown(content["message"])
 
-    # Get DB configuration from session state (assumed to be set in config.py)
     if "db_api" not in st.session_state:
         st.error(
             "Database configuration not found. Please set up the database in the config page first."
@@ -85,8 +88,10 @@ def main():
             )
             relev_docs = [data["key"] for data in response]
             text = merge_text_files(relev_docs)
-
-            response_generator = txt2sql(prompt, text, config_options[selected_config])
+            splited_text = tokenlimit.split_document_by_tokens(text)
+            response_generator = txt2sql(
+                prompt, splited_text, config_options[selected_config]
+            )
 
             num = 1
 
@@ -129,15 +134,31 @@ def main():
 
                             try:
                                 answer_response = answer.generate_answer(
-                                    prompt, full_response["sql_result"]
+                                    prompt,
+                                    full_response["query"],
+                                    full_response["sql_result"],
                                 )
+                                print(answer_response)
                                 full_response["answer"] = json.loads(answer_response)[
                                     "answer"
                                 ]
                             except Exception as e:
-                                full_response["answer"] = f"An error occurred: {e}"
+                                pattern = r"\{[^{}]*\}"
+                                match = re.search(pattern, answer_response)
+                                if match:
+                                    json_object_str = match.group(0)
+                                    try:
+                                        full_response["answer"] = json.loads(
+                                            json_object_str
+                                        )["answer"]
+                                    except Exception as e:
+                                        full_response["answer"] = (
+                                            f"An error occurred: {e}"
+                                        )
+                                else:
+                                    full_response["answer"] = f"An error occurred: {e}"
                             st.markdown("##### Answer")
-                            st.code(full_response["answer"])
+                            st.code(full_response["answer"], language="text")
 
                         else:
                             full_response["message"] = db_execute_result["error"]
