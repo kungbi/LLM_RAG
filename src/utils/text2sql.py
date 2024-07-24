@@ -10,7 +10,6 @@ client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
 
 
 def generate_sql_script(query, text):
-    # prompt_template = prompts.generate_sql_script(query, text)
     prompt_template = prompts.generate_sql_script(query, text)
 
     data = {
@@ -24,7 +23,8 @@ def generate_sql_script(query, text):
     }
 
     try:
-        response = client.send_request(str(data))
+        # response = client.send_request(str(data))
+        response = client.send_request(prompt_template)
         return response
 
     except requests.exceptions.RequestException as e:
@@ -59,7 +59,8 @@ def refine_sql_script(question, text, error_history):
     }
 
     try:
-        response = client.send_request(str(data))
+        # response = client.send_request(str(data))
+        response = client.send_request(prompt_template)
         return response
 
     except requests.exceptions.RequestException as e:

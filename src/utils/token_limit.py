@@ -14,7 +14,9 @@ class TokenLimit:
     def token_counter(self, text: str) -> int:
         return len(self.tokenizer(text)["input_ids"])
 
-    def split_document_by_tokens(self, text: str, max_tokens: int) -> str:
+    def split_document_by_tokens(
+        self, text: str, max_tokens: int = LLM_ENV.LLM_TEXT2SQL_DOCS_MAX_TOKENS
+    ) -> str:
         encoding = self.tokenizer(text)["input_ids"]
         return self.tokenizer.decode(encoding[:max_tokens])
 

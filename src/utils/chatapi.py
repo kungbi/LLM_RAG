@@ -1,4 +1,4 @@
-from langchain import LLMChain
+from langchain.chains import LLMChain
 from langchain_openai import OpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import PromptTemplate
@@ -7,7 +7,11 @@ from utils.token_limit import TokenLimit
 
 class ChatAPI:
     def __init__(self, url, model):
-        self.client = OpenAI(api_key="lm-studio", base_url=url)
+        self.client = OpenAI(
+            api_key="lm-studio",
+            base_url=url,
+            temperature=0,
+        )
         self.model = model
         self.memory = ConversationBufferMemory()
         self.token_limit = TokenLimit()
