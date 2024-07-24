@@ -1,3 +1,4 @@
+import pyodbc
 import streamlit as st
 import utils.opensearch_api as opensearch_api
 from utils.opensearch_query import build_search_query
@@ -9,6 +10,7 @@ from utils.token_limit import TokenLimit
 import env.llm_env as LLM_ENV
 from utils.history_api import ConversationManager
 import json
+from pyodbc import ProgrammingError
 
 
 
@@ -76,6 +78,10 @@ def main():
     )
 
     if prompt := st.chat_input():
+        context = memoryManager.get_full_conversation_history()
+        print("chat history: ")
+        memoryManager.print_conversation_history()
+
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -92,10 +98,7 @@ def main():
         relev_docs = [data["key"] for data in response]
         text = merge_text_files(relev_docs)
 
-        context = memoryManager.generate_summary(user_input=prompt)
-        print("summary:", context)
-        print("chat history: ")
-        memoryManager.print_conversation_history()
+
 
         with st.chat_message("assistant"):
 
@@ -134,7 +137,7 @@ def main():
                             )
                             full_response["sql_result"] = pretty_string
                         else:
-                            full_response["message"] = db_execute_result["error"]
+                            full_response["message"] = f"An error occurred: {db_execute_result["error"]}"
 
                     except Exception as e:
                         full_response["message"] = f"An error occurred: {e}"
@@ -153,7 +156,19 @@ def main():
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
-                full_response_str = json.dumps(full_response)
+                print(type(full_response))
+                print("full_response:", full_response)
+
+                if isinstance(full_response, dict):
+                    # message 항목이 예외 객체인지 확인 후 문자열로 변환
+                    if isinstance(full_response.get('message'), pyodbc.ProgrammingError):
+                        full_response['message'] = str(full_response['message'])
+
+                    # for item in full_response.items():
+                        # print(item, type(item[1]))
+                    full_response_str = json.dumps(full_response)
+                else:
+                    full_response_str = full_response
 
                 memoryManager.add_message_to_memory(role="assistant",content=full_response_str)
 

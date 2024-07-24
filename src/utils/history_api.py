@@ -29,7 +29,8 @@ class ConversationManager:
 
         # Construct the prompt using the context
         prompt = """
-        Generate a summary based on the following conversation history:\n
+        Your job is to produce a final summary.
+        Write a concise summary of the following:\n
         """
         for message in context:
             if isinstance(message, HumanMessage):
@@ -84,3 +85,16 @@ class ConversationManager:
                 print(f"Human: {message.content}")
             elif isinstance(message, AIMessage):
                 print(f"AI: {message.content}")
+
+    def get_full_conversation_history(self):
+        """
+        Return entire history
+        """
+        messages = self.memory.chat_memory.messages
+        conversation_history = ""
+        for message in messages:
+            if isinstance(message, HumanMessage):
+                conversation_history += f"Human: {message.content}\n"
+            elif isinstance(message, AIMessage):
+                conversation_history += f"AI: {message.content}\n"
+        return conversation_history
