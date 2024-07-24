@@ -7,7 +7,7 @@ def generate_sql_script(query, text, context):
     ===Tables
     {text}
     
-    ===Context
+    ===Previous Conversation 
     {context}
     
 
@@ -21,10 +21,11 @@ def generate_sql_script(query, text, context):
     8. Generate a SQL query based on the given prompt. Ensure that the SQL query includes the column names in the results. 
         For example, if the prompt is 'Get the count of students from the PERSON table,' the SQL query should be: SELECT COUNT(*) AS StudentCount FROM PERSON WHERE Discriminator='Student'. The result should include the column name 'StudentCount'.
     9. NOTE: Use SQL 'AS' statement to assign a new name temporarily to a table column or even a table wherever needed. 
+    10. Please answer the question while maintaining the consistency with the above previous conversation 
 
     ===Response Format
     {{
-        "query": "SELCT * FROM PERSON",
+        "query": "SELECT * FROM PERSON",
         "explanation": "The SQL query retrieves all columns and rows from the `Person` table."
     }}
 
@@ -46,9 +47,12 @@ def generate_refine_sql_script(query, text, formatted_error_history, context):
     ===Tables
     {text}
     
+    ===Previous Conversation
+    {context}
     
+    ===Error history
     {formatted_error_history}
-
+    
     ===Response Guidelines
     1. If the provided context is sufficient, please generate a valid query enclosed in string without any explanations for the question. 
     2. If the provided context is insufficient, please explain why it can't be generated.
@@ -60,6 +64,7 @@ def generate_refine_sql_script(query, text, formatted_error_history, context):
     9. If the provided context is sufficient, please correct the original query and enclose it in string without any explanation.
     10. If the provided context is insufficient, please explain why it can't be generated.
     11. NOTE: Use SQL 'AS' statement to assign a new name temporarily to a table column or even a table wherever needed. 
+    12. Please answer the question while maintaining the consistency with the above previous conversation 
 
     ===Response Format
     {{

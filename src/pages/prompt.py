@@ -46,16 +46,17 @@ def main():
             else:
                 content = message["content"]
                 if content["result"]:
+                    st.markdown("##### SQL")
+                    st.code(content["query"], language="sql")
+
                     if content["sql"]:
-                        st.markdown("##### SQL")
-                        st.code(content["query"], language="sql")
+
                         st.markdown("##### SQL result")
                         st.code(content["sql_result"])
                         st.markdown("##### Answer")
                         st.code(content["answer"], language="text")
                     else:
                         st.markdown(f"##### SQL Execution Fail: {content['num']}")
-                        st.code(content["query"], language="sql")
                         st.markdown(content["message"])
                 else:
                     st.markdown(f"##### SQL Generation Fail")
@@ -184,7 +185,6 @@ def main():
 
                 if full_response["message"]:
                     st.markdown(f"##### SQL Execution Fail : {num}")
-                    st.code(full_response["query"], language="sql")
                     st.markdown(full_response["message"])
 
                 message = {"role": "assistant", "content": full_response}
