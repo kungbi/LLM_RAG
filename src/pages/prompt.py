@@ -1,3 +1,4 @@
+import pyodbc
 import streamlit as st
 import json
 import re
@@ -9,6 +10,11 @@ from tabulate import tabulate
 from utils.text2sql import txt2sql
 from utils import answer
 from utils.token_limit import TokenLimit
+import env.llm_env as LLM_ENV
+from utils.history_api import ConversationManager
+import json
+from pyodbc import ProgrammingError
+
 
 
 def main():
@@ -16,8 +22,12 @@ def main():
     st.caption("🚀 A Streamlit chatbot powered by Qwen2 7B")
 
     # st.session_state를 사용하여 history 상태 유지
-    if "history" not in st.session_state:
-        st.session_state.history = []
+    # if "history" not in st.session_state:
+    #     st.session_state.history = []
+
+    if "memory_manager" not in st.session_state:
+        st.session_state.memory_manager = ConversationManager()
+    memoryManager = st.session_state.memory_manager
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -74,25 +84,31 @@ def main():
 
     if prompt := st.chat_input():
         st.session_state.messages.append({"role": "user", "content": prompt})
+        
+        context = memoryManager.get_full_conversation_history()
+        print("chat history: ")
+        memoryManager.print_conversation_history()
+
         with st.chat_message("user"):
             st.markdown(prompt)
+            memoryManager.add_message_to_memory(role="user", content=prompt) #add history
+
+        # opensearch
+        query = build_search_query(query_embedding=opensearch.encode(prompt))
+        response = opensearch.search(INDEX_NAME, query)
+        response = (
+            response.get("aggregations", {})
+            .get("group_by_filename", {})
+            .get("buckets", [])
+        )
+        relev_docs = [data["key"] for data in response]
+        text = merge_text_files(relev_docs)
+
+        splited_text = tokenlimit.split_document_by_tokens(text)
 
         with st.chat_message("assistant"):
-            # opensearch
-            query = build_search_query(query_embedding=opensearch.encode(prompt))
-            response = opensearch.search(INDEX_NAME, query)
-            response = (
-                response.get("aggregations", {})
-                .get("group_by_filename", {})
-                .get("buckets", [])
-            )
-            relev_docs = [data["key"] for data in response]
-            text = merge_text_files(relev_docs)
-            splited_text = tokenlimit.split_document_by_tokens(text)
-            response_generator = txt2sql(
-                prompt, splited_text, config_options[selected_config]
-            )
 
+            response_generator = txt2sql(prompt, splited_text, config_options[selected_config], context)
             num = 1
 
             for response in response_generator:
@@ -161,7 +177,7 @@ def main():
                             st.code(full_response["answer"], language="text")
 
                         else:
-                            full_response["message"] = db_execute_result["error"]
+                            full_response["message"] = f"An error occurred: {db_execute_result["error"]}"
 
                     except Exception as e:
                         full_response["message"] = f"An error occurred: {e}"
@@ -173,6 +189,10 @@ def main():
 
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
+
+                full_response_str = json.dumps(full_response)
+
+                memoryManager.add_message_to_memory(role="assistant",content=full_response_str)
 
                 num += 1
 

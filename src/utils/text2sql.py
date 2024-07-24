@@ -9,8 +9,9 @@ from utils import prompts
 client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
 
 
-def generate_sql_script(query, text):
-    prompt_template = prompts.generate_sql_script(query, text)
+def generate_sql_script(query, text, context):
+    # prompt_template = prompts.generate_sql_script(query, text)
+    prompt_template = prompts.generate_sql_script(query, text, context)
 
     data = {
         "messages": [
@@ -41,11 +42,11 @@ def format_error_history(error_history):
     return formatted.strip()
 
 
-def refine_sql_script(question, text, error_history):
+def refine_sql_script(question, text, error_history, context):
     formatted_error_history = format_error_history(error_history)
 
     prompt_template = prompts.generate_refine_sql_script(
-        question, text, formatted_error_history
+        question, text, formatted_error_history, context
     )
 
     data = {
@@ -68,7 +69,7 @@ def refine_sql_script(question, text, error_history):
         return None
 
 
-def txt2sql(question, txt, id):
+def txt2sql(question, txt, id, context):
     max_attempts = 2
     attempts = 0
     error_history = []
@@ -78,13 +79,11 @@ def txt2sql(question, txt, id):
 
     while attempts < max_attempts:
         with st.spinner("Wait for it..."):
-
             if attempts == 0:
-                response = generate_sql_script(question, txt)
+                response = generate_sql_script(question, txt, context)
             else:
                 print("text2sql retry")
-                response = refine_sql_script(question, txt, error_history)
-            print(response)
+                response = refine_sql_script(question, txt, error_history, context)
 
             if response is None:
                 yield {
@@ -120,12 +119,7 @@ def txt2sql(question, txt, id):
                 sql_script = response_json.get("query") or response_json.get(
                     "refined_query"
                 )
-
-                if not sql_script:
-                    raise Exception("No SQL script found in response")
-
                 sql_result = db_api.execute(id, sql_script)
-                print("db response:", sql_result)
                 if sql_result["result"] == False:
                     raise Exception(sql_result["error"])
 

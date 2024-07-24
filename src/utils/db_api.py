@@ -81,7 +81,7 @@ class DBAPI:
                 df = pd.read_sql(query, conn)
                 return {"result": True, "sql_result": df}
         except Exception as ex:
-            return {"result": False, "error": ex}
+            return {"result": False, "error": str(ex)}
 
 
 if __name__ == "__main__":
