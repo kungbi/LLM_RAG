@@ -1,12 +1,12 @@
 import streamlit as st
+import json
 import utils.opensearch_api as opensearch_api
 from utils.opensearch_query import build_search_query
 from utils.docs_api import merge_text_files
 from env.opensearch_env import INDEX_NAME
 from tabulate import tabulate
 from utils.text2sql import txt2sql
-from utils.token_limit import TokenLimit
-import env.llm_env as LLM_ENV
+from utils import answer
 
 
 def main():
@@ -37,8 +37,10 @@ def main():
                         st.code(content["query"], language="sql")
                         st.markdown("##### SQL result")
                         st.code(content["sql_result"])
+                        st.markdown("##### Answer")
+                        st.code(content["answer"], language="text")
                     else:
-                        st.markdown(f"##### SQL Execution Fail: {content["num"]}")
+                        st.markdown(f"##### SQL Execution Fail: {content['num']}")
                         st.code(content["query"], language="sql")
                         st.markdown(content["message"])
                 else:
@@ -72,19 +74,20 @@ def main():
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # opensearch
-        query = build_search_query(query_embedding=opensearch.encode(prompt))
-        response = opensearch.search(INDEX_NAME, query)
-        response = (
-            response.get("aggregations", {})
-            .get("group_by_filename", {})
-            .get("buckets", [])
-        )
-        relev_docs = [data["key"] for data in response]
-        text = merge_text_files(relev_docs)
-
         with st.chat_message("assistant"):
+            # opensearch
+            query = build_search_query(query_embedding=opensearch.encode(prompt))
+            response = opensearch.search(INDEX_NAME, query)
+            response = (
+                response.get("aggregations", {})
+                .get("group_by_filename", {})
+                .get("buckets", [])
+            )
+            relev_docs = [data["key"] for data in response]
+            text = merge_text_files(relev_docs)
+
             response_generator = txt2sql(prompt, text, config_options[selected_config])
+
             num = 1
 
             for response in response_generator:
@@ -94,7 +97,8 @@ def main():
                     "query": "",
                     "sql_result": "",
                     "message": "",
-                    "num": num
+                    "num": num,
+                    "answer": "",
                 }
 
                 if response["result"] is False:
@@ -105,6 +109,8 @@ def main():
                     sql_response = response.get("sql_script")
                     full_response["query"] = sql_response
                     full_response["result"] = True
+                    st.markdown("##### SQL")
+                    st.code(full_response["query"], language="sql")
 
                     try:
                         db_execute_result = db_api.execute(
@@ -118,29 +124,36 @@ def main():
                                 sql_result, headers="keys", tablefmt="psql"
                             )
                             full_response["sql_result"] = pretty_string
+                            st.markdown("##### SQL result")
+                            st.code(full_response["sql_result"])
+
+                            try:
+                                answer_response = answer.generate_answer(
+                                    prompt, full_response["sql_result"]
+                                )
+                                full_response["answer"] = json.loads(answer_response)[
+                                    "answer"
+                                ]
+                            except Exception as e:
+                                full_response["answer"] = f"An error occurred: {e}"
+                            st.markdown("##### Answer")
+                            st.code(full_response["answer"])
+
                         else:
                             full_response["message"] = db_execute_result["error"]
 
                     except Exception as e:
                         full_response["message"] = f"An error occurred: {e}"
 
-                if full_response["sql"]:
-                    st.markdown("##### SQL")
-                    st.code(full_response["query"], language="sql")
-                    st.markdown("##### SQL result")
-                    st.code(full_response["sql_result"], language="sql")
-                elif full_response["message"]:
+                if full_response["message"]:
                     st.markdown(f"##### SQL Execution Fail : {num}")
                     st.code(full_response["query"], language="sql")
                     st.markdown(full_response["message"])
 
-                # 세션 상태에 메시지 추가
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
                 num += 1
-
-                print("session : ", message)
 
 
 main()

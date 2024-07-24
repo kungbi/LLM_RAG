@@ -76,80 +76,82 @@ def txt2sql(question, txt, id):
     db_api = st.session_state.db_api
 
     while attempts < max_attempts:
-        if attempts == 0:
-            response = generate_sql_script(question, txt)
-        else:
-            print("text2sql retry")
-            response = refine_sql_script(question, txt, error_history)
-        print(response)
+        with st.spinner("Wait for it..."):
 
-        if response is None:
-            yield {
-                "result": False,
-                "sql_script": None,
-                "error_message": "Error in generating SQL Script",
-            }
-            attempts += 1
-            continue
-
-        try:
-            response_json = json.loads(response)
-        except Exception as e:
-            pattern = r"\{[^{}]*\}"
-            match = re.search(pattern, response)
-            if match:
-                json_object_str = match.group(0)
-                try:
-                    response_json = json.loads(json_object_str)
-                except Exception as e:
-                    response_json = None
+            if attempts == 0:
+                response = generate_sql_script(question, txt)
             else:
-                print("No JSON object found.")
+                print("text2sql retry")
+                response = refine_sql_script(question, txt, error_history)
+            print(response)
+
+            if response is None:
                 yield {
                     "result": False,
                     "sql_script": None,
-                    "error_message": "Failed to parse JSON response",
+                    "error_message": "Error in generating SQL Script",
                 }
                 attempts += 1
                 continue
 
-        try:
-            sql_script = response_json.get("query") or response_json.get(
-                "refined_query"
-            )
+            try:
+                response_json = json.loads(response)
+            except Exception as e:
+                pattern = r"\{[^{}]*\}"
+                match = re.search(pattern, response)
+                if match:
+                    json_object_str = match.group(0)
+                    try:
+                        response_json = json.loads(json_object_str)
+                    except Exception as e:
+                        response_json = None
+                else:
+                    print("No JSON object found.")
+                    yield {
+                        "result": False,
+                        "sql_script": None,
+                        "error_message": "Failed to parse JSON response",
+                    }
+                    attempts += 1
+                    continue
 
-            if not sql_script:
-                raise Exception("No SQL script found in response")
+            try:
+                sql_script = response_json.get("query") or response_json.get(
+                    "refined_query"
+                )
 
-            sql_result = db_api.execute(id, sql_script)
-            print("db response:", sql_result)
-            if sql_result["result"] == False:
-                raise Exception(sql_result["error"])
+                if not sql_script:
+                    raise Exception("No SQL script found in response")
 
-            yield {
-                "result": True,
-                "sql_script": sql_script,
-                "error_message": None,
-            }
-            return  # 성공 시 함수 종료
+                sql_result = db_api.execute(id, sql_script)
+                print("db response:", sql_result)
+                if sql_result["result"] == False:
+                    raise Exception(sql_result["error"])
 
-        except Exception as e:
-            error_message = str(e)
-            error_history.append(
-                {
-                    "attempt": attempts + 1,
+                yield {
+                    "result": True,
+                    "sql_script": sql_script,
+                    "error_message": None,
+                }
+                return  # 성공 시 함수 종료
+
+            except Exception as e:
+                error_message = str(e)
+                error_history.append(
+                    {
+                        "attempt": attempts + 1,
+                        "sql_script": sql_script,
+                        "error_message": error_message,
+                    }
+                )
+
+                yield {
+                    "result": True,
                     "sql_script": sql_script,
                     "error_message": error_message,
                 }
-            )
 
-            yield {
-                "result": True,
-                "sql_script": sql_script,
-                "error_message": error_message,
-            }
-
-        attempts += 1
+            attempts += 1
 
     # 최대 시도 횟수를 초과한 경우
     yield {
