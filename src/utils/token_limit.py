@@ -20,12 +20,6 @@ class TokenLimit:
         encoding = self.tokenizer(text)["input_ids"]
         return self.tokenizer.decode(encoding[:max_tokens])
 
-    def split_history_by_tokens(self, history: list, max_tokens: int) -> list:
-        history_queue = deque(history)
-        while not self.token_counter(str(history_queue)) < max_tokens:
-            history_queue.popleft()
-        return history_queue
-
     def is_available_docs_selection(self, docs: str, prompt: str) -> bool:
         docs_token_len = self.token_counter(docs)
         if not docs_token_len <= LLM_ENV.LLM_DOCS_SELECTION_DCOS_MAX_TOKENS:
@@ -33,6 +27,12 @@ class TokenLimit:
 
         prompt_token_len = self.token_counter(prompt)
         if not prompt_token_len <= LLM_ENV.LLM_DOCS_SELECTION_PROMPT_MAX_TOKENS:
+            return False
+        return True
+
+    def is_available_history(self, history: str) -> bool:
+        history_token_len = self.token_counter(history)
+        if not history_token_len <= LLM_ENV.LLM_TEXT2SQL_HISTORY_MAX_TOKENS:
             return False
         return True
 
