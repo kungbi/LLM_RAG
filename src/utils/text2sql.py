@@ -81,7 +81,7 @@ def txt2sql(question, txt, id, context):
         else:
             print("text2sql retry")
             response = refine_sql_script(question, txt, error_history, context)
-        print(response)
+        # print(response)
 
         if response is None:
             yield {
@@ -122,7 +122,7 @@ def txt2sql(question, txt, id, context):
                 raise Exception("No SQL script found in response")
 
             sql_result = db_api.execute(id, sql_script)
-            print("db response:", sql_result)
+            # print("db response:", sql_result)
             if sql_result["result"] == False:
                 raise Exception(sql_result["error"])
 

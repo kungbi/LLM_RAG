@@ -8,6 +8,7 @@ from utils.text2sql import txt2sql
 from utils.token_limit import TokenLimit
 import env.llm_env as LLM_ENV
 from utils.history_api import ConversationManager
+import json
 
 
 
@@ -19,8 +20,9 @@ def main():
     # if "history" not in st.session_state:
     #     st.session_state.history = []
 
-    history = ConversationManager()
-
+    if "memory_manager" not in st.session_state:
+        st.session_state.memory_manager = ConversationManager()
+    memoryManager = st.session_state.memory_manager
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -77,7 +79,7 @@ def main():
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
-            history.add_message_to_memory(role="user", content=prompt)
+            memoryManager.add_message_to_memory(role="user", content=prompt) #add history
 
         # opensearch
         query = build_search_query(query_embedding=opensearch.encode(prompt))
@@ -90,7 +92,10 @@ def main():
         relev_docs = [data["key"] for data in response]
         text = merge_text_files(relev_docs)
 
-        context = history.generate_summary(user_input=prompt)
+        context = memoryManager.generate_summary(user_input=prompt)
+        print("summary:", context)
+        print("chat history: ")
+        memoryManager.print_conversation_history()
 
         with st.chat_message("assistant"):
 
@@ -147,7 +152,10 @@ def main():
                 # 세션 상태에 메시지 추가
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
-                history.add_message_to_memory(role="assistant",content="message")
+
+                full_response_str = json.dumps(full_response)
+
+                memoryManager.add_message_to_memory(role="assistant",content=full_response_str)
 
                 num += 1
 

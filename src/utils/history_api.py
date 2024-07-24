@@ -2,6 +2,7 @@ from utils.chatapi import ChatAPI
 import env.llm_env as LLM_ENV
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import HumanMessage, AIMessage
+import json
 
 class ConversationManager:
     def __init__(self):
@@ -12,6 +13,7 @@ class ConversationManager:
         """
         Add a message to the conversation memory.
         """
+
         if role == "user":
             self.memory.chat_memory.add_user_message(content)
         elif role == "assistant":
@@ -21,14 +23,14 @@ class ConversationManager:
         """
         Generate a summary based on the conversation history and user input.
         """
-        # Add user input to memory
-        self.add_message_to_memory("user", user_input)
-
+        #
         # Retrieve the conversation context
         context = self.memory.load_memory_variables({})["history"]
 
         # Construct the prompt using the context
-        prompt = "Generate a summary based on the following conversation history:\n"
+        prompt = """
+        Generate a summary based on the following conversation history:\n
+        """
         for message in context:
             if isinstance(message, HumanMessage):
                 prompt += f"Human: {message.content}\n"
@@ -40,8 +42,8 @@ class ConversationManager:
         response = self.llm.send_request(prompt)
 
         # Add the response to memory
-        self.add_message_to_memory("assistant", response)
-        print("summary:",response)
+        # print("summary:",response)
+
 
         return response
 
@@ -55,7 +57,9 @@ class ConversationManager:
 
         # Generate corrected response
         context = self.memory.load_memory_variables({})["history"]
-        prompt = "Based on the following conversation, provide a corrected response:\n"
+        prompt = """
+        Based on the following conversation, provide a corrected response:\n
+        """
         for message in context:
             if isinstance(message, HumanMessage):
                 prompt += f"Human: {message.content}\n"
@@ -69,3 +73,14 @@ class ConversationManager:
         self.add_message_to_memory("assistant", corrected_response)
 
         return corrected_response
+
+    def print_conversation_history(self):
+        """
+        Print the entire conversation history.
+        """
+        messages = self.memory.chat_memory.messages
+        for message in messages:
+            if isinstance(message, HumanMessage):
+                print(f"Human: {message.content}")
+            elif isinstance(message, AIMessage):
+                print(f"AI: {message.content}")
