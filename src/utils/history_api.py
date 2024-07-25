@@ -4,20 +4,61 @@ from langchain.memory import ConversationBufferMemory
 from langchain.schema import HumanMessage, AIMessage
 import json
 
+
 class ConversationManager:
     def __init__(self):
         self.llm = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
         self.memory = ConversationBufferMemory(return_messages=True)
+        self.turn_counter = 0
 
-    def add_message_to_memory(self, role, content):
+    def add_user_message_to_memory(self, content):
         """
-        Add a message to the conversation memory.
+        Add a user message to the conversation memory with turn numbering.
         """
+        self.turn_counter += 1
+        turn_header = f"===Turn {self.turn_counter}:\n\n"
+        full_content = f"{turn_header}Human: {content}\n"
+        self.memory.chat_memory.add_user_message(full_content)
 
-        if role == "user":
-            self.memory.chat_memory.add_user_message(content)
-        elif role == "assistant":
-            self.memory.chat_memory.add_ai_message(content)
+    def add_ai_response_to_memory(self, combined_response_str):
+        """
+        Add an AI response to the conversation memory with detailed explanations.
+        """
+        try:
+            responses = json.loads(combined_response_str)
+            full_content = ""
+            for response in responses:
+                full_content += f"AI Response {response.get('num', '')}:\n"
+
+                if response.get('query') is None:
+                    full_content += "Status: Failed to generate SQL Script\n"
+                elif not response.get('result'):
+                    full_content += "Status: Error in SQL Script generation\n"
+                else:
+                    full_content += "Status: SQL Script generated successfully\n"
+
+                if response.get('query'):
+                    full_content += f"Generated SQL Script: {response.get('query')}\n"
+
+                if not response.get('sql'):
+                    full_content += "SQL Execution: Failed\n"
+                else:
+                    full_content += "SQL Execution: Successful\n"
+
+                if response.get('sql_result'):
+                    full_content += f"SQL Execution Result:\n{response.get('sql_result')}\n"
+
+                if response.get('message'):
+                    full_content += f"Error Message: {response.get('message')}\n"
+
+                if response.get('answer'):
+                    full_content += f"Final Answer: {response.get('answer')}\n"
+
+                full_content += "\n"
+
+            self.memory.chat_memory.add_ai_message(full_content.strip())
+        except json.JSONDecodeError:
+            print("Error: Invalid JSON string")
 
     def generate_summary(self, user_input):
         """
