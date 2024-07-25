@@ -46,16 +46,17 @@ def main():
             else:
                 content = message["content"]
                 if content["result"]:
+                    st.markdown("##### SQL")
+                    st.code(content["query"], language="sql")
+
                     if content["sql"]:
-                        st.markdown("##### SQL")
-                        st.code(content["query"], language="sql")
+
                         st.markdown("##### SQL result")
                         st.code(content["sql_result"])
                         st.markdown("##### Answer")
                         st.code(content["answer"], language="text")
                     else:
                         st.markdown(f"##### SQL Execution Fail: {content['num']}")
-                        st.code(content["query"], language="sql")
                         st.markdown(content["message"])
                 else:
                     st.markdown(f"##### SQL Generation Fail")
@@ -91,7 +92,7 @@ def main():
 
         with st.chat_message("user"):
             st.markdown(prompt)
-            memoryManager.add_message_to_memory(role="user", content=prompt) #add history
+            memoryManager.add_user_message_to_memory(prompt)
 
         # opensearch
         query = build_search_query(query_embedding=opensearch.encode(prompt))
@@ -110,6 +111,7 @@ def main():
 
             response_generator = txt2sql(prompt, splited_text, config_options[selected_config], context)
             num = 1
+            full_responses = []
 
             for response in response_generator:
                 full_response = {
@@ -184,17 +186,19 @@ def main():
 
                 if full_response["message"]:
                     st.markdown(f"##### SQL Execution Fail : {num}")
-                    st.code(full_response["query"], language="sql")
                     st.markdown(full_response["message"])
 
+                full_responses.append(full_response)
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
-                full_response_str = json.dumps(full_response)
-
-                memoryManager.add_message_to_memory(role="assistant",content=full_response_str)
-
                 num += 1
+
+                # full_response_str = json.dumps(full_response)
+            combined_response_str=json.dumps(full_responses)
+
+            memoryManager.add_ai_response_to_memory(combined_response_str)
+
 
 
 main()
