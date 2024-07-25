@@ -138,3 +138,43 @@ def generate_answer_prompt_template(question: str, sql_query: str, sql_result: s
     {question}
     """
     return template
+
+
+def generate_data_summary_prompt(data: str):
+    template = f"""
+    You are an expert summarizer.
+
+    Your job is to produce a concise summary based on the provided data. 
+    Follow the response guidelines and format instructions.
+
+    ===Data
+    {data}
+
+    ===Response Guidelines
+    1. Summarize the information in the data clearly and concisely.
+    2. Only include the most relevant and important information.
+    3. Format the summary in complete sentences and in a professional manner.
+    """
+    return template
+
+
+def generate_combined_summary_prompt(current_summary: str, previous_summaries: str):
+    template = f"""
+    You are an expert summarizer.
+
+    Your job is to produce a final, concise summary based on the current summary and the previously summarized content. 
+    Follow the response guidelines and format instructions.
+
+    ===Current Summary
+    {current_summary}
+
+    ===Previous Summaries
+    {previous_summaries}
+
+    ===Response Guidelines
+    1. Combine the information from the current summary and the previous summaries.
+    2. Ensure the final summary is clear, concise, and comprehensive.
+    3. Only include the most relevant and important information.
+    4. Format the final summary in complete sentences and in a professional manner.
+    """
+    return template

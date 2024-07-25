@@ -13,16 +13,6 @@ def generate_sql_script(query, text, context):
     # prompt_template = prompts.generate_sql_script(query, text)
     prompt_template = prompts.generate_sql_script(query, text, context)
 
-    data = {
-        "messages": [
-            {"role": "system", "content": "You are a MSSQL expert."},
-            {"role": "user", "content": prompt_template},
-        ],
-        "temperature": 0.0,
-        "max_tokens": -1,
-        "stream": True,  # 스트리밍 모드 활성화
-    }
-
     try:
         # response = client.send_request(str(data))
         response = client.send_request(prompt_template)
