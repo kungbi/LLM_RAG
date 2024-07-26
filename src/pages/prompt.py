@@ -36,7 +36,7 @@ def main():
     opensearch = st.session_state.opensearch
 
     tokenlimit = TokenLimit()
-    if tokenlimit.is_available_history(memoryManager.get_full_conversation_history()):
+    if not tokenlimit.is_available_history(memoryManager.get_full_conversation_history()):
         memoryManager.summarize_and_update_buffer()
 
     # Display chat history
@@ -90,6 +90,7 @@ def main():
         st.session_state.messages.append({"role": "user", "content": prompt})
         
         context = memoryManager.get_full_conversation_history()
+        print(context)
         print("chat history: ")
         memoryManager.print_conversation_history()
 

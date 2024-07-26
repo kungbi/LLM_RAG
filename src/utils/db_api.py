@@ -81,6 +81,7 @@ class DBAPI:
                 df = pd.read_sql(query, conn)
                 return {"result": True, "sql_result": df}
         except Exception as ex:
+            print(type(ex))
             return {"result": False, "error": str(ex)}
 
 
@@ -102,7 +103,7 @@ if __name__ == "__main__":
 
     result = db_api.execute(
         0,
-        "SELECT COUNT(*) as student_count FROM Person WHERE Discriminator = 'student';",
+        "SELECT CourseID, StudentID, Grade, ROW_NUMBER() OVER (PARTITION BY CourseID ORDER BY Grade DESC) AS Rank FROM StudentGrade WHERE Discriminator='Student' LIMIT 3",
     )
     if result["result"]:
         df = result["sql_result"]
