@@ -1,4 +1,3 @@
-import pyodbc
 import streamlit as st
 import json
 import re
@@ -13,7 +12,7 @@ from utils.token_limit import TokenLimit
 import env.llm_env as LLM_ENV
 from utils.history_api import ConversationManager
 import json
-from pyodbc import ProgrammingError
+import time
 
 
 
@@ -86,6 +85,8 @@ def main():
     )
 
     if prompt := st.chat_input():
+        start_time = time.time()
+        
         st.session_state.messages.append({"role": "user", "content": prompt})
         
         context = memoryManager.get_full_conversation_history()
@@ -200,6 +201,9 @@ def main():
             combined_response_str=json.dumps(full_responses)
 
             memoryManager.add_ai_response_to_memory(combined_response_str)
+            end_time = time.time()
+            st.markdown("##### Time:")
+            st.markdown(f"{round(end_time - start_time, 2)}s")
 
 
 
