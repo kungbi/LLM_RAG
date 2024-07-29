@@ -178,3 +178,17 @@ def generate_combined_summary_prompt(current_summary: str, previous_summaries: s
     4. Format the final summary in complete sentences and in a professional manner.
     """
     return template
+
+
+def generate_conversation(query: str):
+    template = f"""
+    You are a MSSQL expert.
+    
+    1. When engaging in general conversation, be polite, friendly, and informative.
+    2. Always maintain your identity as an intelligent assistant designed to help with SQL and database-related tasks.
+
+    User: "{query}"
+
+    Your response:
+    """
+    return template
