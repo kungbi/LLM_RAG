@@ -18,7 +18,7 @@ import time
 
 def main():
     st.title("💬 Text2SQL")
-    st.caption("🚀 A Streamlit chatbot powered by Qwen2 7B")
+    st.caption(f"🚀 A Streamlit chatbot powered by {LLM_ENV.LLM_MODEL}")
 
     # st.session_state를 사용하여 history 상태 유지
     # if "history" not in st.session_state:
@@ -90,9 +90,6 @@ def main():
         st.session_state.messages.append({"role": "user", "content": prompt})
         
         context = memoryManager.get_full_conversation_history()
-        print(context)
-        print("chat history: ")
-        memoryManager.print_conversation_history()
 
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -160,7 +157,6 @@ def main():
                                     full_response["query"],
                                     full_response["sql_result"],
                                 )
-                                print(answer_response)
                                 full_response["answer"] = json.loads(answer_response)[
                                     "answer"
                                 ]

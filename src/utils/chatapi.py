@@ -1,29 +1,20 @@
 from langchain.chains import LLMChain
-from langchain_openai import OpenAI
+from openai import OpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import PromptTemplate
-from utils.token_limit import TokenLimit
+
 from utils.token_limit import TokenLimit
 
 
 class ChatAPI:
     def __init__(self, url, model):
-        self.client = OpenAI(
-            api_key="lm-studio",
-            base_url=url,
-            temperature=0,
-        )
+        self.client = OpenAI(api_key="lm-studio", base_url=url)
         self.model = model
         self.memory = ConversationBufferMemory()
         self.token_limit = TokenLimit()
         self.prompt_template = PromptTemplate(
             input_variables=["history", "input"],
             template="Chat history: {history}\nUser: {input}\nAssistant:",
-        )
-        self.chain = LLMChain(
-            llm=self.client,
-            prompt=self.prompt_template,
-            memory=self.memory,
         )
 
     def send_request_history(self, message):
@@ -46,19 +37,27 @@ class ChatAPI:
             yield chunk
 
     def send_request(self, message):
+        print(f"message: {message}")
         if not self.token_limit.is_available_full_request(message):
             return "Token limit exceeded."
-
-        response = self.chain.predict(input=message)
-        return response
+        response = self.client.chat.completions.create(
+            model="TheBloke/CodeLlama-7B-Instruct-GGUF",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a MSSQL expert.\n Please always respond with a valid well-formed JSON object with the following format.",
+                },
+                {"role": "user", "content": message},
+            ],
+            temperature=0.0,
+        )
+        return response.choices[0].message.content
 
 
 # Example usage:
-# client = ChatAPI(
-#     url="http://localhost:1234/v1",
-#     model="lmstudio-community/Meta-Llama-3-8B-Instruct-BPE-fix-GGUF",
-# )
-# print(client.send_request("hi"))
-# print(client.send_request_history("hi"))
-# for chunk in client.send_request_history_stream("hi"):
-#     print(chunk, end="")
+# if __name__ == "__main__":
+#     client = ChatAPI(
+#         url="http://localhost:1234/v1",
+#         model="TheBloke/CodeLlama-7B-Instruct-GGUF",
+#     )
+#     print(client.send_request("hi"))

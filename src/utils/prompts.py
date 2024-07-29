@@ -2,26 +2,27 @@ def generate_sql_script(query, text, context):
     prompt_template = f"""
     You are a MSSQL expert.
 
-    Please help to generate a MSSQL query to answer the question. Your response should ONLY be based on the given context and follow the response guidelines and format instructions.
+    Generate a MSSQL query to answer the question. Your response should ONLY be based on the given context and follow the response guidelines and format instructions.
 
     ===Tables
     {text}
     
-    ===Previous Conversation 
+    ===Previous Conversation
     {context}
-    
 
     ===Response Guidelines
-    1. If the provided context is sufficient, please generate a valid query enclosed in string without any explanations for the question. 
-    2. If the provided context is insufficient, please explain why it can't be generated.
-    3. Please use the most relevant table(s).
-    5. Please format the query before responding.
-    6. Please always respond with a valid well-formed JSON object with the following format.
-    7. Please return the JSON response without using code block formatting. The response should be directly loadable as JSON.
-    8. Generate a SQL query based on the given prompt. Ensure that the SQL query includes the column names in the results. 
-        For example, if the prompt is 'Get the count of students from the PERSON table,' the SQL query should be: SELECT COUNT(*) AS StudentCount FROM PERSON WHERE Discriminator='Student'. The result should include the column name 'StudentCount'.
-    9. NOTE: Use SQL 'AS' statement to assign a new name temporarily to a table column or even a table wherever needed. 
-    10. Please answer the question while maintaining the consistency with the above previous conversation 
+    1. If the provided context is sufficient, generate a valid query enclosed in a string without any explanations for the question.
+    2. If the provided context is insufficient, explain why it can't be generated.
+    3. Use the most relevant table(s).
+    4. Only use the provided table names and column names; do not use any other names.
+    5. Format the query before responding.
+    6. Ensure the SQL query is executable without any modifications.
+    7. Always respond with a valid well-formed JSON object with the following format.
+    8. Return the JSON response without using code block formatting. The response should be directly loadable as JSON.
+    9. Generate a SQL query based on the given prompt. Ensure that the SQL query includes the column names in the results.
+       For example, if the prompt is 'Get the count of students from the PERSON table,' the SQL query should be: SELECT COUNT(*) AS StudentCount FROM PERSON WHERE Discriminator='Student'. The result should include the column name 'StudentCount'.
+    10. Use SQL 'AS' statement to assign a new name temporarily to a table column or even a table wherever needed.
+    11. Answer the question while maintaining consistency with the previous conversation.
 
     ===Response Format
     {{
@@ -39,42 +40,37 @@ def generate_refine_sql_script(query, text, formatted_error_history, context):
     prompt_template = f"""
     You are a MSSQL expert.
 
-    Please help to correct the original MSSQL query according to Error message. 
-    Your response should ONLY be based on the given context and follow the response guidelines and format instructions. 
-    You must not include the original input.
-
+    Generate a MSSQL query to answer the question. Your response should ONLY be based on the given context and follow the response guidelines and format instructions.
 
     ===Tables
     {text}
     
     ===Previous Conversation
     {context}
-    
-    ===Error history
-    {formatted_error_history}
-    
+
     ===Response Guidelines
-    1. If the provided context is sufficient, please generate a valid query enclosed in string without any explanations for the question. 
-    2. If the provided context is insufficient, please explain why it can't be generated.
-    3. Please use the most relevant table(s).
-    5. Please format the query before responding.
-    6. Please always respond with a valid well-formed JSON object with the following format.
-    7. Please return the JSON response without using code block formatting. The response should be directly loadable as JSON.
-    8. Generate a SQL query based on the given prompt. Ensure that the SQL query includes the column names in the results.
-    9. If the provided context is sufficient, please correct the original query and enclose it in string without any explanation.
-    10. If the provided context is insufficient, please explain why it can't be generated.
-    11. NOTE: Use SQL 'AS' statement to assign a new name temporarily to a table column or even a table wherever needed. 
-    12. Please answer the question while maintaining the consistency with the above previous conversation 
+    1. If the provided context is sufficient, generate a valid query enclosed in a string without any explanations for the question.
+    2. If the provided context is insufficient, explain why it can't be generated.
+    3. Use the most relevant table(s).
+    4. Only use the provided table names and column names; do not use any other names.
+    5. Format the query before responding.
+    6. Ensure the SQL query is executable without any modifications.
+    7. The SQL query must be written as a single statement without using scalar variables.
+    8. Always respond with a valid well-formed JSON object with the following format.
+    9. Return the JSON response without using code block formatting. The response should be directly loadable as JSON.
+    10. Generate a SQL query based on the given prompt. Ensure that the SQL query includes the column names in the results.
+        For example, if the prompt is 'Get the count of students from the PERSON table,' the SQL query should be: SELECT COUNT(*) AS StudentCount FROM PERSON WHERE Discriminator='Student'. The result should include the column name 'StudentCount'.
+    11. Use SQL 'AS' statement to assign a new name temporarily to a table column or even a table wherever needed.
+    12. Answer the question while maintaining consistency with the previous conversation.
 
     ===Response Format
     {{
-        "refined_query": " Only corrected SQL query enclosed in string when context is sufficient.",
-        "explanation": "An explanation of failing to generate the query."
+        "query": "SELECT * FROM PERSON",
+        "explanation": "The SQL query retrieves all columns and rows from the `Person` table."
     }}
 
-    ===Original Question
+    ===Question
     {query}
-
     """
     return prompt_template
 

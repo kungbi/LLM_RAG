@@ -1,12 +1,17 @@
 from typing import List
 import env.llm_env as LLM_ENV
 from transformers import Qwen2Tokenizer
+from transformers import AutoTokenizer
 from collections import deque
 
 
 class TokenLimit:
     def __init__(self) -> None:
         if "Qwen" in LLM_ENV.LLM_MODEL:
+            self.tokenizer: function = Qwen2Tokenizer.from_pretrained(
+                "Qwen/Qwen-tokenizer"
+            )
+        elif "CodeLlama" in LLM_ENV.LLM_MODEL:
             self.tokenizer: function = Qwen2Tokenizer.from_pretrained(
                 "Qwen/Qwen-tokenizer"
             )

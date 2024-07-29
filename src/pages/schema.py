@@ -80,8 +80,6 @@ if st.button("Search"):
             data = json.loads(column["_source"]["document"])
             columns.append((data, column["_score"]))
 
-        print(tables)
-        print(columns)
         if tables:
             for result in tables:
                 st.write(result)

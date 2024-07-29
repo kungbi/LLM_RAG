@@ -12,5 +12,4 @@ def generate_answer(query: str, sql_query: str, sql_result: str) -> str:
         return response
 
     except Exception as e:
-        print(f"Error: {e}")
         return None
