@@ -121,7 +121,7 @@ def main():
 
             route = semantic_layer(prompt)
 
-            if route.name == 'GeneralConversationRouter' or route.name == None:
+            if route.name == 'GeneralConversationRouter':
                 prompt_template = prompts.generate_conversation(prompt)
                 response = client.send_request(prompt_template)
                 full_response = {
