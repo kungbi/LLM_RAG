@@ -147,18 +147,18 @@ def main():
                         except Exception as e:
                             response_json = None
 
-                answer = response_json.get("answer")
+                gen_answer = response_json.get("answer")
                 # print("response: ", answer)
 
                 st.markdown("##### Answer")
-                st.write(answer)
+                st.write(gen_answer)
 
-                full_response["gen_conv"] = answer
+                full_response["gen_conv"] = gen_answer
 
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
-                memoryManager.add_ai_response_to_memory(answer)
+                memoryManager.add_ai_response_to_memory(gen_answer)
                 end_time = time.time()
                 st.markdown("##### Time:")
                 st.markdown(f"{round(end_time - start_time, 2)}s")
