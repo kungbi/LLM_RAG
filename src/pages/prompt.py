@@ -13,8 +13,9 @@ import env.llm_env as LLM_ENV
 from utils.history_api import ConversationManager
 import json
 import time
-
-
+from utils.router_api import semantic_layer
+from utils import prompts
+from utils.chatapi import ChatAPI
 
 def main():
     st.title("💬 Text2SQL")
@@ -27,7 +28,6 @@ def main():
     if "memory_manager" not in st.session_state:
         st.session_state.memory_manager = ConversationManager()
     memoryManager = st.session_state.memory_manager
-
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -35,7 +35,10 @@ def main():
         st.session_state.opensearch = opensearch_api.connect()
     opensearch = st.session_state.opensearch
 
+    client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
+
     tokenlimit = TokenLimit()
+
     if not tokenlimit.is_available_history(memoryManager.get_full_conversation_history()):
         memoryManager.summarize_and_update_buffer()
 
@@ -47,6 +50,7 @@ def main():
             else:
                 content = message["content"]
                 if content["result"]:
+
                     st.markdown("##### SQL")
                     st.code(content["query"], language="sql")
 
@@ -59,6 +63,11 @@ def main():
                     else:
                         st.markdown(f"##### SQL Execution Fail: {content['num']}")
                         st.markdown(content["message"])
+
+                elif content["gen_conv"]:
+                    st.markdown('##### Answer')
+                    st.write(content["gen_conv"])
+
                 else:
                     st.markdown(f"##### SQL Generation Fail")
                     st.markdown(content["message"])
@@ -110,97 +119,129 @@ def main():
 
         with st.chat_message("assistant"):
 
-            response_generator = txt2sql(prompt, splited_text, config_options[selected_config], context)
-            num = 1
-            full_responses = []
+            route=semantic_layer(prompt)
 
-            for response in response_generator:
+            if route.name == 'GeneralConversationRouter':
+                prompt_template = prompts.generate_conversation(prompt)
+                response = client.send_request(prompt_template)
                 full_response = {
                     "result": False,
                     "sql": False,
                     "query": "",
                     "sql_result": "",
                     "message": "",
-                    "num": num,
+                    "num": -1,
                     "answer": "",
+                    "gen_conv":""
                 }
 
-                if response["result"] is False:
-                    full_response["message"] = response["error_message"]
-                    st.markdown(f"##### SQL Generation Fail {num}")
-                    st.markdown(response["error_message"])
-                else:
-                    sql_response = response.get("sql_script")
-                    full_response["query"] = sql_response
-                    full_response["result"] = True
-                    st.markdown("##### SQL")
-                    st.code(full_response["query"], language="sql")
+                st.markdown("##### Answer")
+                st.write(response)
 
-                    try:
-                        db_execute_result = db_api.execute(
-                            config_options[selected_config], sql_response
-                        )
 
-                        if db_execute_result["result"]:
-                            full_response["sql"] = True
-                            sql_result = db_execute_result["sql_result"]
-                            pretty_string = tabulate(
-                                sql_result, headers="keys", tablefmt="psql"
-                            )
-                            full_response["sql_result"] = pretty_string
-                            st.markdown("##### SQL result")
-                            st.code(full_response["sql_result"])
+                full_response["gen_conv"] = response
 
-                            try:
-                                answer_response = answer.generate_answer(
-                                    prompt,
-                                    full_response["query"],
-                                    full_response["sql_result"],
-                                )
-                                full_response["answer"] = json.loads(answer_response)[
-                                    "answer"
-                                ]
-                            except Exception as e:
-                                pattern = r"\{[^{}]*\}"
-                                match = re.search(pattern, answer_response)
-                                if match:
-                                    json_object_str = match.group(0)
-                                    try:
-                                        full_response["answer"] = json.loads(
-                                            json_object_str
-                                        )["answer"]
-                                    except Exception as e:
-                                        full_response["answer"] = (
-                                            f"An error occurred: {e}"
-                                        )
-                                else:
-                                    full_response["answer"] = f"An error occurred: {e}"
-                            st.markdown("##### Answer")
-                            st.code(full_response["answer"], language="text")
-
-                        else:
-                            full_response["message"] = f"An error occurred: {db_execute_result["error"]}"
-
-                    except Exception as e:
-                        full_response["message"] = f"An error occurred: {e}"
-
-                if full_response["message"]:
-                    st.markdown(f"##### SQL Execution Fail : {num}")
-                    st.markdown(full_response["message"])
-
-                full_responses.append(full_response)
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
-                num += 1
+                memoryManager.add_ai_response_to_memory(response)
+                end_time = time.time()
+                st.markdown("##### Time:")
+                st.markdown(f"{round(end_time - start_time, 2)}s")
 
-                # full_response_str = json.dumps(full_response)
-            combined_response_str=json.dumps(full_responses)
+            else:
+                response_generator = txt2sql(prompt, splited_text, config_options[selected_config], context)
+                num = 1
+                full_responses = []
 
-            memoryManager.add_ai_response_to_memory(combined_response_str)
-            end_time = time.time()
-            st.markdown("##### Time:")
-            st.markdown(f"{round(end_time - start_time, 2)}s")
+                for response in response_generator:
+                    full_response = {
+                        "result": False,
+                        "sql": False,
+                        "query": "",
+                        "sql_result": "",
+                        "message": "",
+                        "num": num,
+                        "answer": "",
+                    }
+
+                    if response["result"] is False:
+                        full_response["message"] = response["error_message"]
+                        st.markdown(f"##### SQL Generation Fail {num}")
+                        st.markdown(response["error_message"])
+                    else:
+                        sql_response = response.get("sql_script")
+                        full_response["query"] = sql_response
+                        full_response["result"] = True
+                        st.markdown("##### SQL")
+                        st.code(full_response["query"], language="sql")
+
+                        try:
+                            db_execute_result = db_api.execute(
+                                config_options[selected_config], sql_response
+                            )
+
+                            if db_execute_result["result"]:
+                                full_response["sql"] = True
+                                sql_result = db_execute_result["sql_result"]
+                                pretty_string = tabulate(
+                                    sql_result, headers="keys", tablefmt="psql"
+                                )
+                                full_response["sql_result"] = pretty_string
+                                st.markdown("##### SQL result")
+                                st.code(full_response["sql_result"])
+
+                                try:
+                                    answer_response = answer.generate_answer(
+                                        prompt,
+                                        full_response["query"],
+                                        full_response["sql_result"],
+                                    )
+                                    print(answer_response)
+                                    full_response["answer"] = json.loads(answer_response)[
+                                        "answer"
+                                    ]
+                                except Exception as e:
+                                    pattern = r"\{[^{}]*\}"
+                                    match = re.search(pattern, answer_response)
+                                    if match:
+                                        json_object_str = match.group(0)
+                                        try:
+                                            full_response["answer"] = json.loads(
+                                                json_object_str
+                                            )["answer"]
+                                        except Exception as e:
+                                            full_response["answer"] = (
+                                                f"An error occurred: {e}"
+                                            )
+                                    else:
+                                        full_response["answer"] = f"An error occurred: {e}"
+                                st.markdown("##### Answer")
+                                st.code(full_response["answer"], language="text")
+
+                            else:
+                                full_response["message"] = f"An error occurred: {db_execute_result["error"]}"
+
+                        except Exception as e:
+                            full_response["message"] = f"An error occurred: {e}"
+
+                    if full_response["message"]:
+                        st.markdown(f"##### SQL Execution Fail : {num}")
+                        st.markdown(full_response["message"])
+
+                    full_responses.append(full_response)
+                    message = {"role": "assistant", "content": full_response}
+                    st.session_state.messages.append(message)
+
+                    num += 1
+
+                    # full_response_str = json.dumps(full_response)
+                combined_response_str=json.dumps(full_responses)
+
+                memoryManager.add_ai_response_to_memory(combined_response_str)
+                end_time = time.time()
+                st.markdown("##### Time:")
+                st.markdown(f"{round(end_time - start_time, 2)}s")
 
 
 
