@@ -119,9 +119,9 @@ def main():
 
         with st.chat_message("assistant"):
 
-            route=semantic_layer(prompt)
+            route = semantic_layer(prompt)
 
-            if route.name == 'GeneralConversationRouter':
+            if route.name == 'GeneralConversationRouter' or route.name == None:
                 prompt_template = prompts.generate_conversation(prompt)
                 response = client.send_request(prompt_template)
                 full_response = {
@@ -135,16 +135,30 @@ def main():
                     "gen_conv":""
                 }
 
+                try:
+                    response_json = json.loads(response)
+                except Exception as e:
+                    pattern = r"\{[^{}]*\}"
+                    match = re.search(pattern, response)
+                    if match:
+                        json_object_str = match.group(0)
+                        try:
+                            response_json = json.loads(json_object_str)
+                        except Exception as e:
+                            response_json = None
+
+                answer = response_json.get("answer")
+                # print("response: ", answer)
+
                 st.markdown("##### Answer")
-                st.write(response)
+                st.write(answer)
 
-
-                full_response["gen_conv"] = response["answer"]
+                full_response["gen_conv"] = answer
 
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 
-                memoryManager.add_ai_response_to_memory(response)
+                memoryManager.add_ai_response_to_memory(answer)
                 end_time = time.time()
                 st.markdown("##### Time:")
                 st.markdown(f"{round(end_time - start_time, 2)}s")
@@ -164,6 +178,7 @@ def main():
                         "num": num,
                         "answer": "",
                     }
+
 
                     if response["result"] is False:
                         full_response["message"] = response["error_message"]

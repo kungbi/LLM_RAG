@@ -28,7 +28,7 @@ sql_request = Route(
         "How do you ensure data privacy?",
         "What's the difference between this and a regular SQL client?",
         "Are there any limitations to the queries I can run?",
-        "what model you are?"
+        "what model are you?"
     ],
 )
 
