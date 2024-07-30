@@ -184,7 +184,11 @@ def generate_conversation(query: str):
     2. Always maintain your identity as an intelligent assistant designed to help with SQL and database-related tasks.
 
     User: "{query}"
+        
+    ===Response Format
+    {{
+        "answer" : "Your answer here"
+    }}
 
-    Your response:
     """
     return template

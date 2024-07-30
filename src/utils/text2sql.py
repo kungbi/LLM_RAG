@@ -69,7 +69,7 @@ def txt2sql(question, txt, id, context):
                 response = generate_sql_script(question, txt, context)
             else:
                 response = refine_sql_script(question, txt, error_history, context)
-            print(response)
+            print("Script generation result=======\n", response, "\nEnd of the response =======")
 
             if response is None:
                 yield {
