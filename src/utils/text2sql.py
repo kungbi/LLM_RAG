@@ -116,12 +116,14 @@ def txt2sql(question, txt, id, context):
                 return  # 성공 시 함수 종료
 
             except Exception as e:
+                explanation=response_json.get("explanation")
                 error_message = str(e)
                 error_history.append(
                     {
                         "attempt": attempts + 1,
                         "sql_script": sql_script,
                         "error_message": error_message,
+                        "explanation": explanation
                     }
                 )
 
@@ -129,6 +131,7 @@ def txt2sql(question, txt, id, context):
                     "result": True,
                     "sql_script": sql_script,
                     "error_message": error_message,
+                    "explanation": explanation
                 }
 
             attempts += 1
@@ -138,4 +141,6 @@ def txt2sql(question, txt, id, context):
         "result": True,
         "error_message": "maximum number exceeded",
         "sql_script": sql_script,
+        "explanation": explanation
+
     }
