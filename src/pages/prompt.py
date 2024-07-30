@@ -19,7 +19,7 @@ from utils.chatapi import ChatAPI
 
 def main():
     st.title("💬 Text2SQL")
-    st.caption("🚀 A Streamlit chatbot powered by Qwen2 7B")
+    st.caption(f"🚀 A Streamlit chatbot powered by {LLM_ENV.LLM_MODEL}")
 
     # st.session_state를 사용하여 history 상태 유지
     # if "history" not in st.session_state:
@@ -28,7 +28,6 @@ def main():
     if "memory_manager" not in st.session_state:
         st.session_state.memory_manager = ConversationManager()
     memoryManager = st.session_state.memory_manager
-
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -100,9 +99,6 @@ def main():
         st.session_state.messages.append({"role": "user", "content": prompt})
         
         context = memoryManager.get_full_conversation_history()
-        print(context)
-        print("chat history: ")
-        memoryManager.print_conversation_history()
 
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -142,7 +138,9 @@ def main():
                 st.markdown("##### Answer")
                 st.write(response)
 
+
                 full_response["gen_conv"] = response
+
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
 

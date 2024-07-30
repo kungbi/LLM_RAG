@@ -10,16 +10,13 @@ client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
 
 
 def generate_sql_script(query, text, context):
-    # prompt_template = prompts.generate_sql_script(query, text)
     prompt_template = prompts.generate_sql_script(query, text, context)
 
     try:
-        # response = client.send_request(str(data))
         response = client.send_request(prompt_template)
         return response
 
     except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
         return None
 
 
@@ -55,7 +52,6 @@ def refine_sql_script(question, text, error_history, context):
         return response
 
     except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
         return None
 
 
@@ -72,8 +68,8 @@ def txt2sql(question, txt, id, context):
             if attempts == 0:
                 response = generate_sql_script(question, txt, context)
             else:
-                print("text2sql retry")
                 response = refine_sql_script(question, txt, error_history, context)
+            print(response)
 
             if response is None:
                 yield {
@@ -96,7 +92,6 @@ def txt2sql(question, txt, id, context):
                     except Exception as e:
                         response_json = None
                 else:
-                    print("No JSON object found.")
                     yield {
                         "result": False,
                         "sql_script": None,
