@@ -186,5 +186,11 @@ def generate_conversation(query: str):
     User: "{query}"
 
     Your response:
+        
+    ===Response Format
+    {{
+        "answer" : "Your answer here"
+    }}
+
     """
     return template

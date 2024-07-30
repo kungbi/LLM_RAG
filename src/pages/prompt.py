@@ -139,7 +139,7 @@ def main():
                 st.write(response)
 
 
-                full_response["gen_conv"] = response
+                full_response["gen_conv"] = response["answer"]
 
                 message = {"role": "assistant", "content": full_response}
                 st.session_state.messages.append(message)
@@ -197,7 +197,7 @@ def main():
                                         full_response["query"],
                                         full_response["sql_result"],
                                     )
-                                    print(answer_response)
+                                    # print(answer_response)
                                     full_response["answer"] = json.loads(answer_response)[
                                         "answer"
                                     ]

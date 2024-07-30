@@ -37,7 +37,7 @@ class ChatAPI:
             yield chunk
 
     def send_request(self, message):
-        print(f"message: {message}")
+        # print(f"message: {message}")
         if not self.token_limit.is_available_full_request(message):
             return "Token limit exceeded."
         response = self.client.chat.completions.create(
