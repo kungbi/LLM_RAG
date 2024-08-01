@@ -2,7 +2,8 @@ def generate_sql_script(query, text, context):
     prompt_template = f"""
     You are a MSSQL expert.
 
-    Generate a MSSQL query to answer the question. Your response should ONLY be based on the given context and follow the response guidelines and format instructions.
+    Generate a MSSQL query to answer the question. 
+    Your response should ONLY be based on the given context and follow the response guidelines and format instructions.
 
     ===Tables
     {text}
@@ -12,7 +13,7 @@ def generate_sql_script(query, text, context):
 
     ===Response Guidelines
     1. If the provided context is sufficient, generate a valid query enclosed in a string without any explanations for the question.
-    2. If the provided context is insufficient, explain why it can't be generated.
+    2. If the provided context is insufficient, explain why it can't be generated on explanation section politely.
     3. Use the most relevant table(s).
     4. Only use the provided table names and column names; do not use any other names.
     5. Format the query before responding.
@@ -23,11 +24,16 @@ def generate_sql_script(query, text, context):
        For example, if the prompt is 'Get the count of students from the PERSON table,' the SQL query should be: SELECT COUNT(*) AS StudentCount FROM PERSON WHERE Discriminator='Student'. The result should include the column name 'StudentCount'.
     10. Use SQL 'AS' statement to assign a new name temporarily to a table column or even a table wherever needed.
     11. Answer the question while maintaining consistency with the previous conversation.
+    12. Please put your polite, kind, detailed whole explanation in 'explanation:' in JSON Formant
+
 
     ===Response Format
     {{
         "query": "SELECT * FROM PERSON",
-        "explanation": "The SQL query retrieves all columns and rows from the `Person` table."
+        "explanation": "The prompt "how. many cat based on the paw?" seems to be unrelated to the provided database schema and tables. 
+        The conversation appears to be about managing courses, students, instructors, departments, and grades in an educational institution.
+        If you could provide more context or clarify what you mean by "cat" and "paw," I'd be happy to assist you with a relevant SQL query. 
+"
     }}
 
     ===Question

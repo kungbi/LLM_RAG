@@ -132,7 +132,9 @@ def main():
                     "message": "",
                     "num": -1,
                     "answer": "",
-                    "gen_conv":""
+                    "gen_conv":"",
+                    "explanation":""
+
                 }
 
                 try:
@@ -177,7 +179,8 @@ def main():
                         "message": "",
                         "num": num,
                         "answer": "",
-                        "explanation":""
+                        "explanation":"",
+                        "gen_conv":""
                     }
 
 
