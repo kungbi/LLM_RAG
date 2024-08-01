@@ -132,7 +132,9 @@ def main():
                     "message": "",
                     "num": -1,
                     "answer": "",
-                    "gen_conv":""
+                    "gen_conv":"",
+                    "explanation":""
+
                 }
 
                 try:
@@ -177,6 +179,8 @@ def main():
                         "message": "",
                         "num": num,
                         "answer": "",
+                        "explanation":"",
+                        "gen_conv":""
                     }
 
 
@@ -243,6 +247,9 @@ def main():
                     if full_response["message"]:
                         st.markdown(f"##### SQL Execution Fail : {num}")
                         st.markdown(full_response["message"])
+                        st.markdown("##### Explanation:")
+                        st.write(response.get("explanation")) # add explanation
+                        full_response["explanation"] = response.get("explanation")
 
                     full_responses.append(full_response)
                     message = {"role": "assistant", "content": full_response}
