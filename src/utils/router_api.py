@@ -33,10 +33,14 @@ general_conversation = Route(
         "What can this application do?",
         "Tell me a joke",
         "Hallo!",
-        "good morning!"
-        "who are you?"
-        "what's your name?"
-        "how are"
+        "good morning!",
+        "who are you?",
+        "what's your name?",
+        "how are you feeling?",
+        "what can you do for me?",
+        "Thank you so much!",
+        "can you tell me about your capacity?",
+        "can you tell me about your structure?"
     ],
 )
 
