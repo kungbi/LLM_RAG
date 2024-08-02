@@ -22,13 +22,6 @@ sql_request = Route(
         "What is the average grade of students in each course? (join, group by, aggregation)",
         "Which departments have more than two courses, and what is the total number of courses in those departments? (rank function)",
         "For each course, rank the students based on their grades. Display only the top 3 students for each course.",
-        "What are the capabilities of this system?",
-        "Can you explain how the database is structured?",
-        "What types of SQL queries can you handle?",
-        "How do you ensure data privacy?",
-        "What's the difference between this and a regular SQL client?",
-        "Are there any limitations to the queries I can run?",
-        "what model are you?"
     ],
 )
 
@@ -39,8 +32,11 @@ general_conversation = Route(
         "How are you doing today?",
         "What can this application do?",
         "Tell me a joke",
-        "What's the weather like?",
-        "Who created you?",
+        "Hallo!",
+        "good morning!"
+        "who are you?"
+        "what's your name?"
+        "how are"
     ],
 )
 
