@@ -1,0 +1,23 @@
+
+======= dbo.Course table =======
+
+======= Columns =======
+CourseID (type: int, length: nan, nullable: NO, default: None)
+Title (type: nvarchar, length: 100.0, nullable: NO, default: None)
+Credits (type: int, length: nan, nullable: NO, default: None)
+DepartmentID (type: int, length: nan, nullable: NO, default: None)
+
+======= Foreign Keys =======
+FK_Course_Department: DepartmentID -> Department.DepartmentID
+
+======= Data (first 10 rows) =======
+{'CourseID': 1045, 'Title': 'Calculus', 'Credits': 4, 'DepartmentID': 7}
+{'CourseID': 1050, 'Title': 'Chemistry', 'Credits': 4, 'DepartmentID': 1}
+{'CourseID': 1061, 'Title': 'Physics', 'Credits': 4, 'DepartmentID': 1}
+{'CourseID': 2021, 'Title': 'Composition', 'Credits': 3, 'DepartmentID': 2}
+{'CourseID': 2030, 'Title': 'Poetry', 'Credits': 2, 'DepartmentID': 2}
+{'CourseID': 2042, 'Title': 'Literature', 'Credits': 4, 'DepartmentID': 2}
+{'CourseID': 3141, 'Title': 'Trigonometry', 'Credits': 4, 'DepartmentID': 7}
+{'CourseID': 4022, 'Title': 'Microeconomics', 'Credits': 3, 'DepartmentID': 4}
+{'CourseID': 4041, 'Title': 'Macroeconomics', 'Credits': 3, 'DepartmentID': 4}
+{'CourseID': 4061, 'Title': 'Quantitative', 'Credits': 2, 'DepartmentID': 4}

@@ -1,0 +1,25 @@
+
+======= dbo.Person table =======
+
+======= Columns =======
+PersonID (type: int, length: nan, nullable: NO, default: None)
+LastName (type: nvarchar, length: 50.0, nullable: NO, default: None)
+FirstName (type: nvarchar, length: 50.0, nullable: NO, default: None)
+HireDate (type: datetime, length: nan, nullable: YES, default: None)
+EnrollmentDate (type: datetime, length: nan, nullable: YES, default: None)
+Discriminator (type: nvarchar, length: 50.0, nullable: NO, default: None)
+
+======= Foreign Keys =======
+
+
+======= Data (first 10 rows) =======
+{'PersonID': 1, 'LastName': 'Abercrombie', 'FirstName': 'Kim', 'HireDate': Timestamp('1995-03-11 00:00:00'), 'EnrollmentDate': NaT, 'Discriminator': 'Instructor'}
+{'PersonID': 2, 'LastName': 'Barzdukas', 'FirstName': 'Gytis', 'HireDate': NaT, 'EnrollmentDate': Timestamp('2005-09-01 00:00:00'), 'Discriminator': 'Student'}
+{'PersonID': 3, 'LastName': 'Justice', 'FirstName': 'Peggy', 'HireDate': NaT, 'EnrollmentDate': Timestamp('2001-09-01 00:00:00'), 'Discriminator': 'Student'}
+{'PersonID': 4, 'LastName': 'Fakhouri', 'FirstName': 'Fadi', 'HireDate': Timestamp('2002-08-06 00:00:00'), 'EnrollmentDate': NaT, 'Discriminator': 'Instructor'}
+{'PersonID': 5, 'LastName': 'Harui', 'FirstName': 'Roger', 'HireDate': Timestamp('1998-07-01 00:00:00'), 'EnrollmentDate': NaT, 'Discriminator': 'Instructor'}
+{'PersonID': 6, 'LastName': 'Li', 'FirstName': 'Yan', 'HireDate': NaT, 'EnrollmentDate': Timestamp('2002-09-01 00:00:00'), 'Discriminator': 'Student'}
+{'PersonID': 7, 'LastName': 'Norman', 'FirstName': 'Laura', 'HireDate': NaT, 'EnrollmentDate': Timestamp('2003-09-01 00:00:00'), 'Discriminator': 'Student'}
+{'PersonID': 8, 'LastName': 'Olivotto', 'FirstName': 'Nino', 'HireDate': NaT, 'EnrollmentDate': Timestamp('2005-09-01 00:00:00'), 'Discriminator': 'Student'}
+{'PersonID': 9, 'LastName': 'Tang', 'FirstName': 'Wayne', 'HireDate': NaT, 'EnrollmentDate': Timestamp('2005-09-01 00:00:00'), 'Discriminator': 'Student'}
+{'PersonID': 10, 'LastName': 'Alonso', 'FirstName': 'Meredith', 'HireDate': NaT, 'EnrollmentDate': Timestamp('2002-09-01 00:00:00'), 'Discriminator': 'Student'}

@@ -1,93 +1,54 @@
+import os
 import streamlit as st
 from utils import opensearch_api
-import os
-import json
-
-# del st.session_state["opensearch"]
-# if not "opensearch" in st.session_state:
-#     st.session_state.opensearch = opensearch_api.connect()
-# opensearch = st.session_state.opensearch
-opensearch = opensearch_api.connect()
-opensearch.create_index2("application_tables")
-opensearch.create_index2("application_columns")
-
-# schema 디렉토리 생성
-if not os.path.exists("schema"):
-    os.makedirs("schema")
-
-# 파일 업로드 및 삭제 상태 관리
-tables_file_uploaded = os.path.exists("schema/tables_file.json")
-columns_file_uploaded = os.path.exists("schema/columns_file.json")
-
-# 페이지 제목
-st.title("DB Schema Upload")
-
-# table 파일 업로드
-if not tables_file_uploaded:
-    tables_file = st.file_uploader("Upload Tables File", type=["json"], key="tables")
-    if tables_file is not None:
-        path = os.path.join("schema", "tables_file.json")
-        with open(path, "wb") as f:
-            text = tables_file.read()
-            f.write(text)
-        data = json.loads(text)
-        for line in data:
-            opensearch.index_tables(json.dumps(line))
-        st.experimental_rerun()
-else:
-    st.write("Tables file uploaded successfully.")
-    if st.button("Delete Tables File"):
-        os.remove(os.path.join("schema", "tables_file.json"))
-        st.experimental_rerun()
-
-# column 파일 업로드
-if not columns_file_uploaded:
-    columns_file = st.file_uploader("Upload Columns File", type=["json"], key="columns")
-    if columns_file is not None:
-        path = os.path.join("schema", "columns_file.json")
-        with open(path, "wb") as f:
-            text = columns_file.read()
-            f.write(text)
-        data = json.loads(text)
-        for line in data:
-            opensearch.index_column(json.dumps(line))
-        st.experimental_rerun()
-else:
-    st.write("Columns file uploaded successfully.")
-    if st.button("Delete Columns File"):
-        os.remove(os.path.join("schema", "columns_file.json"))
-        st.experimental_rerun()
+from utils import doc_extract_api
 
 
-# 검색 기능 추가
-st.title("Search DB Schema")
+# Function to extract the schema
+def extract():
+    doc_extract_api.start_extract()
 
-search_query = st.text_input("Enter search query:")
-if st.button("Search"):
-    if search_query:
-        tables_res = opensearch.search_tables(search_query)
-        columns_res = opensearch.search_columns(search_query)
 
-        tables = []
-        for table in tables_res["hits"]["hits"]:
-            data = json.loads(table["_source"]["document"])
-            tables.append(
-                (data["dataset_name"] + "." + data["table_name"], table["_score"])
-            )
+# Function to display the content of a selected file
+def display_file_content(file_path):
+    with open(file_path, "r") as file:
+        content = file.read()
+    st.text(content)
 
-        columns = []
-        for column in columns_res["hits"]["hits"]:
-            data = json.loads(column["_source"]["document"])
-            columns.append((data, column["_score"]))
 
-        if tables:
-            for result in tables:
-                st.write(result)
-        else:
-            st.write("No results found.")
+# Function to get file size
+def get_file_size(file_path):
+    size = os.path.getsize(file_path)
+    # Convert size to human-readable format
+    for unit in ["B", "KB", "MB", "GB"]:
+        if size < 1024:
+            return f"{size:.2f} {unit}"
+        size /= 1024
 
-        if columns:
-            for result in columns:
-                st.write(result)
-        else:
-            st.write("No results found.")
+
+# Page title
+st.title("DB Schema Extraction")
+on = st.toggle("Include in Opensearch")
+st.button("Start Extract", type="secondary", use_container_width=True, on_click=extract)
+
+# List the schema files
+schema_files = doc_extract_api.get_schema_list()
+max_width = 600
+st.write(f"<div style='max-width: {max_width}px;'>", unsafe_allow_html=True)
+
+selected_file = st.selectbox("Select a file to view its content", schema_files)
+
+if selected_file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_dir = os.path.join(script_dir, "../../schema")
+    file_path = os.path.join(output_dir, selected_file)
+    file_size = get_file_size(file_path)
+
+    st.write(f"Selected File: {selected_file} - {file_size}")
+
+    st.divider()
+    display_file_content(file_path)
+    st.divider()
+    # with st.expander(f"Content of {selected_file}"):
+
+st.write("</div>", unsafe_allow_html=True)

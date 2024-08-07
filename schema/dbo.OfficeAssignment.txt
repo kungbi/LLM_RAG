@@ -1,0 +1,21 @@
+
+======= dbo.OfficeAssignment table =======
+
+======= Columns =======
+InstructorID (type: int, length: nan, nullable: NO, default: None)
+Location (type: nvarchar, length: 50.0, nullable: NO, default: None)
+Timestamp (type: timestamp, length: nan, nullable: NO, default: None)
+
+======= Foreign Keys =======
+FK_OfficeAssignment_Person: InstructorID -> Person.PersonID
+
+======= Data (first 10 rows) =======
+{'InstructorID': 1, 'Location': '17 Smith', 'Timestamp': 2001}
+{'InstructorID': 4, 'Location': '29 Adams', 'Timestamp': 2002}
+{'InstructorID': 5, 'Location': '37 Williams', 'Timestamp': 2003}
+{'InstructorID': 18, 'Location': '143 Smith', 'Timestamp': 2004}
+{'InstructorID': 25, 'Location': '57 Adams', 'Timestamp': 2005}
+{'InstructorID': 27, 'Location': '271 Williams', 'Timestamp': 2006}
+{'InstructorID': 31, 'Location': '131 Smith', 'Timestamp': 2007}
+{'InstructorID': 32, 'Location': '203 Williams', 'Timestamp': 2008}
+{'InstructorID': 34, 'Location': '213 Smith', 'Timestamp': 2009}
