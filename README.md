@@ -22,15 +22,15 @@ $ pip install -r requirements.txt
 
 ### Add LLM Path for Semantic Router
 ```
-#Open the file `/env/llama_env.py`
+#Open the file `src/env/llama_env.py`
 #add path to LMStudio local llama model
 
 LLAMA_MODEL_PATH = "/path/to/your/model/Meta-Llama-3-8B-Instruct-IQ3_M.gguf"
 ```
 
 ### Preparation
-- Start LLM on your local server with LMStudio
-- Start OpenSearch server
+- Start LLM on your local server with LMStudio (localhost:1234)
+- Start OpenSearch server (localhost:9200)
 - Start MSSQL Server
 
 ### Start Application
