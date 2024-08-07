@@ -7,24 +7,21 @@ from utils.db_api import DBAPI, DB_Configuration
 db_api: DBAPI = st.session_state.db_api
 
 
-# Function to extract the schema
 def extract(id: int):
     db_info = db_api.get_configuration(id)
 
     doc_extract_api.start_extract(db_info)
 
 
-# Function to display the content of a selected file
 def display_file_content(file_path):
     with open(file_path, "r") as file:
         content = file.read()
     st.text(content)
 
 
-# Function to get file size
 def get_file_size(file_path):
     size = os.path.getsize(file_path)
-    # Convert size to human-readable format
+
     for unit in ["B", "KB", "MB", "GB"]:
         if size < 1024:
             return f"{size:.2f} {unit}"
@@ -32,7 +29,7 @@ def get_file_size(file_path):
 
 
 def main():
-    # Page title
+
     st.title("DB Schema Extraction")
 
     db_configs = db_api.get_configurations()
@@ -60,7 +57,6 @@ def main():
         args=(config_options[selected_config],),
     )
 
-    # List the schema files
     schema_files = doc_extract_api.get_schema_list()
 
     selected_file = st.selectbox("Select a file to view its content", schema_files)

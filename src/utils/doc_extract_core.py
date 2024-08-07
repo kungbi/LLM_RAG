@@ -13,7 +13,6 @@ def get_engine(db_info: DB_Configuration):
 def execute_query(engine, query):
     try:
         df = pd.read_sql(query, engine)
-        # 'timestamp' 또는 'rowversion' 열을 변환
         for col in df.columns:
             if df[col].dtype == "object" and isinstance(df[col].iloc[0], bytes):
                 df[col] = df[col].apply(lambda x: int.from_bytes(x, "big"))
@@ -118,18 +117,14 @@ def table_info_to_string(table_name, info):
 
 
 def start(db_info: DB_Configuration):
-    # SQLAlchemy 엔진 생성
     engine = get_engine(db_info)
 
-    # 각 쿼리를 실행하고 데이터프레임으로 변환
     table_info_df = execute_query(engine, table_info_query)
     column_info_df = execute_query(engine, column_info_query)
     foreign_key_info_df = execute_query(engine, foreign_key_info_query)
 
-    # 테이블 별로 컬럼, foreign key, 데이터 정보를 저장할 dictionary
     database_info = {}
 
-    # 테이블 정보 확인 및 dictionary에 추가
     if table_info_df is not None:
         for schema, table in zip(
             table_info_df["TABLE_SCHEMA"], table_info_df["TABLE_NAME"]
@@ -137,11 +132,9 @@ def start(db_info: DB_Configuration):
             table_key = f"{schema}.{table}"
             database_info[table_key] = {}
 
-            # 컬럼 정보 추가
             column_info = column_info_df[column_info_df["TABLE_NAME"] == table]
             database_info[table_key]["columns"] = column_info.to_dict(orient="records")
 
-            # Foreign key 정보 추가
             foreign_key_info = foreign_key_info_df[
                 foreign_key_info_df["Parent_Table"] == table
             ]
@@ -149,7 +142,6 @@ def start(db_info: DB_Configuration):
                 orient="records"
             )
 
-            # 데이터 추가
             query = select_data_query.format(schema=schema, table=table)
             try:
                 data_df = execute_query(engine, query)
@@ -161,7 +153,6 @@ def start(db_info: DB_Configuration):
                 print(f"Could not retrieve data from table {schema}.{table}: {e}")
                 database_info[table_key]["data"] = []
 
-    # 각 테이블의 정보를 문자열로 변환하여 출력
     for table, info in database_info.items():
         table_str = table_info_to_string(table, info)
 
