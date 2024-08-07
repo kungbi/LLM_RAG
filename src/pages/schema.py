@@ -48,7 +48,14 @@ def main():
 
     print()
 
-    on = st.toggle("Include in Opensearch")
+    st.session_state["db_schema_toggle"] = st.toggle(
+        "Include in Opensearch",
+        value=(
+            st.session_state["db_schema_toggle"]
+            if "db_schema_toggle" in st.session_state
+            else False
+        ),
+    )
     st.button(
         "Start Extract",
         type="secondary",

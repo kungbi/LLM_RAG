@@ -23,9 +23,17 @@ class DocExtract:
 
     def extract(self):
         doc_extract_core.start(self.db_info)
+        self.upload_opensearch()
 
     def upload_opensearch(self):
-        pass
+        filename_list = get_schema_list()
+        for filename in filename_list:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            output_dir = os.path.join(script_dir, "../../schema")
+            file_path = os.path.join(output_dir, filename)
+            with open(file_path, "r") as file:
+                text = file.read()
+                self.opensearch.index_document_chunk(self.INDEX_NAME, filename, text)
 
 
 def get_schema_list():
