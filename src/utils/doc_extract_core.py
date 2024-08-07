@@ -76,6 +76,7 @@ ORDER BY
 select_data_query = """
 SELECT TOP 10 *
 FROM {schema}.{table}
+ORDER BY newid()
 """
 
 pd.set_option("display.max_rows", None)
@@ -110,7 +111,7 @@ def table_info_to_string(table_name, info):
 ======= Foreign Keys =======
 {foreign_keys_str}
 
-======= Data (first 10 rows) =======
+======= Data (10 random rows) =======
 {data_str}
 """
     return table_str
