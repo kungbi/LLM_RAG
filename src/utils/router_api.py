@@ -6,6 +6,7 @@ from semantic_router.llms.llamacpp import LlamaCppLLM
 import sys
 import logging
 from contextlib import contextmanager
+from env.llama_env import LLAMA_MODEL_PATH
 
 
 sql_request = Route(
@@ -54,9 +55,13 @@ logger = logging.getLogger(__name__)
 
 @contextmanager
 def llama_context():
+    model_path = LLAMA_MODEL_PATH
+    if not model_path:
+        raise ValueError("LLAMA_MODEL_PATH 환경 변수가 설정되지 않았습니다.")
+
     logger.info("Initializing Llama model...")
     _llm = Llama(
-        model_path="/Users/sean/.cache/lm-studio/models/lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF/Meta-Llama-3-8B-Instruct-IQ3_M.gguf",
+        model_path=model_path,
         n_gpu_layers=-1 if enable_gpu else 0,
         n_ctx=2048,
     )
@@ -102,24 +107,24 @@ def semantic_layer(query: str):
 
 
 
-# def main(query: str):
-#     route = semantic_layer(query)
-#     if route.name == "sql_request":
-#         query += f" (SYSTEM NOTE: {route.name})"
-#     elif route.name == "brand_protection":
-#         query += f" (SYSTEM NOTE: {route.name})"
-#     else:
-#         pass
-#     return query
-#
-# if __name__ == "__main__":
-#     try:
-#         main(input())
-#     except Exception as e:
-#         logger.exception("An error occurred during execution")
-#     finally:
-#         print("Script execution completed")
-#         sys.stdout.flush()
+def main(query: str):
+    route = semantic_layer(query)
+    if route.name == "sql_request":
+        query += f" (SYSTEM NOTE: {route.name})"
+    elif route.name == "brand_protection":
+        query += f" (SYSTEM NOTE: {route.name})"
+    else:
+        pass
+    return query
+
+if __name__ == "__main__":
+    try:
+        main(input())
+    except Exception as e:
+        logger.exception("An error occurred during execution")
+    finally:
+        print("Script execution completed")
+        sys.stdout.flush()
 
 
 

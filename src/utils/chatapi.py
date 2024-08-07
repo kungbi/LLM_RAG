@@ -41,7 +41,7 @@ class ChatAPI:
         if not self.token_limit.is_available_full_request(message):
             return "Token limit exceeded."
         response = self.client.chat.completions.create(
-            model="TheBloke/CodeLlama-7B-Instruct-GGUF",
+            model="Qwen/Qwen2-7B-Instruct-GGUF/qwen2-7b-instruct-q4_0.gguf",
             messages=[
                 {
                     "role": "system",
