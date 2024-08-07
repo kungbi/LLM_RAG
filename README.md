@@ -20,7 +20,7 @@ $ source .env/bin/activate
 $ pip install -r requirements.txt
 ```
 
-### Add LLM Path for Semnatic Router
+### Add LLM Path for Semantic Router
 ```
 #Open the file `/env/llama_env.py`
 #add path to LMStudio local llama model
@@ -40,9 +40,9 @@ $ streamlit run src/app.py
 
 Below is the the lifecycle of the application:
 
-- **Conntect to DB**:
-- **Connecto to local LLM**: 
-- **Conntect to OpenSearch and Index DB Schema**:
+- **Connect to DB**:
+- **Connect to local LLM**: 
+- **Connect to OpenSearch and Index DB Schema**:
 - **Query Input**: 
 
 
