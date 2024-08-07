@@ -2,11 +2,16 @@ import os
 import streamlit as st
 from utils import opensearch_api
 from utils import doc_extract_api
+from utils.db_api import DBAPI, DB_Configuration
+
+db_api: DBAPI = st.session_state.db_api
 
 
 # Function to extract the schema
-def extract():
-    doc_extract_api.start_extract()
+def extract(id: int):
+    db_info = db_api.get_configuration(id)
+
+    doc_extract_api.start_extract(db_info)
 
 
 # Function to display the content of a selected file
@@ -30,7 +35,6 @@ def main():
     # Page title
     st.title("DB Schema Extraction")
 
-    db_api = st.session_state.db_api
     db_configs = db_api.get_configurations()
     if not db_configs:
         st.error(
@@ -45,9 +49,15 @@ def main():
         "Select Database Configuration", options=list(config_options.keys())
     )
 
+    print()
+
     on = st.toggle("Include in Opensearch")
     st.button(
-        "Start Extract", type="secondary", use_container_width=True, on_click=extract
+        "Start Extract",
+        type="secondary",
+        use_container_width=True,
+        on_click=extract,
+        args=(config_options[selected_config],),
     )
 
     # List the schema files

@@ -2,12 +2,11 @@ import pandas as pd
 import os
 import sys
 from sqlalchemy import create_engine
-
-# 연결 문자열을 적절히 수정
-connection_string = "mssql+pyodbc://sa:Ithink%Th5r5f0re$Iam@localhost:1433/school?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+from utils.db_api import DB_Configuration
 
 
-def get_engine(connection_string):
+def get_engine(db_info: DB_Configuration):
+    connection_string = f"mssql+pyodbc://{db_info.username}:{db_info.password}@{db_info.hostname}:{db_info.port}/{db_info.database_name}?driver={db_info.driver}&TrustServerCertificate=yes"
     return create_engine(connection_string)
 
 
@@ -118,9 +117,9 @@ def table_info_to_string(table_name, info):
     return table_str
 
 
-def start():
+def start(db_info: DB_Configuration):
     # SQLAlchemy 엔진 생성
-    engine = get_engine(connection_string)
+    engine = get_engine(db_info)
 
     # 각 쿼리를 실행하고 데이터프레임으로 변환
     table_info_df = execute_query(engine, table_info_query)
