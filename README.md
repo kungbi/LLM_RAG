@@ -10,7 +10,7 @@
   - Qwen/Qwen2-7B-Instruct-GGUF/qwen2-7b-instruct-q4_0.gguf
   - lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF/Meta-Llama-3-8B-Instruct-IQ3_M.gguf
   -  nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q8_0.gguf
-- MS SQL Server
+- MS SQL Server (ODBC Driver 18 for SQL Server or ODBC Driver 17 for SQL Server)
 - OpenSearch Server
 
 ### Installation
@@ -19,6 +19,15 @@ $ python3 -m venv .env
 $ source .env/bin/activate
 $ pip install -r requirements.txt
 ```
+
+### Add LLM Path for Semnatic Router
+```
+#Open the file `/env/llama_env.py`
+#add path to LMStudio local llama model
+
+LLAMA_MODEL_PATH = "/path/to/your/model/Meta-Llama-3-8B-Instruct-IQ3_M.gguf"
+```
+
 
 ### Start Application
 
