@@ -31,6 +31,7 @@ class SearchAPI:
 
     def index_document_chunk(self, index_name, filename, text):
         chunks = chunk_sentences(text)
+        print(chunks)
         for i, chunk in enumerate(chunks):
             embedding = self.encode(chunk)
             action = opensearch_query.build_index_query(filename, chunk, embedding)

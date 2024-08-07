@@ -1,0 +1,24 @@
+
+======= dbo.StudentGrade table =======
+
+======= Columns =======
+EnrollmentID (type: int, length: nan, nullable: NO, default: None)
+CourseID (type: int, length: nan, nullable: NO, default: None)
+StudentID (type: int, length: nan, nullable: NO, default: None)
+Grade (type: decimal, length: nan, nullable: YES, default: None)
+
+======= Foreign Keys =======
+FK_StudentGrade_Course: CourseID -> Course.CourseID
+FK_StudentGrade_Student: StudentID -> Person.PersonID
+
+======= Data (10 random rows) =======
+{'EnrollmentID': 34, 'CourseID': 1061, 'StudentID': 26, 'Grade': 3.0}
+{'EnrollmentID': 6, 'CourseID': 2042, 'StudentID': 6, 'Grade': 3.5}
+{'EnrollmentID': 19, 'CourseID': 4041, 'StudentID': 14, 'Grade': 3.0}
+{'EnrollmentID': 33, 'CourseID': 1050, 'StudentID': 26, 'Grade': 3.5}
+{'EnrollmentID': 22, 'CourseID': 4022, 'StudentID': 17, 'Grade': nan}
+{'EnrollmentID': 18, 'CourseID': 4061, 'StudentID': 13, 'Grade': 4.0}
+{'EnrollmentID': 23, 'CourseID': 4022, 'StudentID': 19, 'Grade': 3.5}
+{'EnrollmentID': 2, 'CourseID': 2030, 'StudentID': 2, 'Grade': 3.5}
+{'EnrollmentID': 13, 'CourseID': 4041, 'StudentID': 11, 'Grade': 2.5}
+{'EnrollmentID': 37, 'CourseID': 1050, 'StudentID': 28, 'Grade': 3.5}

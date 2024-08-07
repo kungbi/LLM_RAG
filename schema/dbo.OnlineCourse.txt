@@ -1,0 +1,15 @@
+
+======= dbo.OnlineCourse table =======
+
+======= Columns =======
+CourseID (type: int, length: nan, nullable: NO, default: None)
+URL (type: nvarchar, length: 100.0, nullable: NO, default: None)
+
+======= Foreign Keys =======
+FK_OnlineCourse_Course: CourseID -> Course.CourseID
+
+======= Data (10 random rows) =======
+{'CourseID': 2030, 'URL': 'http://www.fineartschool.net/Poetry'}
+{'CourseID': 4041, 'URL': 'http://www.fineartschool.net/Macroeconomics'}
+{'CourseID': 3141, 'URL': 'http://www.fineartschool.net/Trigonometry'}
+{'CourseID': 2021, 'URL': 'http://www.fineartschool.net/Composition'}
