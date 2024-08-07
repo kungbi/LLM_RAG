@@ -28,6 +28,10 @@ $ pip install -r requirements.txt
 LLAMA_MODEL_PATH = "/path/to/your/model/Meta-Llama-3-8B-Instruct-IQ3_M.gguf"
 ```
 
+### Preparation
+- Start LLM on your local server with LMStudio
+- Start OpenSearch server
+- Start MSSQL Server
 
 ### Start Application
 
@@ -40,10 +44,9 @@ $ streamlit run src/app.py
 
 Below is the the lifecycle of the application:
 
-- **Connect to DB**:
-- **Connect to local LLM**: 
-- **Connect to OpenSearch and Index DB Schema**:
-- **Query Input**: 
+- **Index your own DB Schema on OpenSearch**
+- **User query**
+- **DB Execution**
 
 
 ### Flowchart
