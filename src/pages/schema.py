@@ -26,29 +26,46 @@ def get_file_size(file_path):
         size /= 1024
 
 
-# Page title
-st.title("DB Schema Extraction")
-on = st.toggle("Include in Opensearch")
-st.button("Start Extract", type="secondary", use_container_width=True, on_click=extract)
+def main():
+    # Page title
+    st.title("DB Schema Extraction")
 
-# List the schema files
-schema_files = doc_extract_api.get_schema_list()
-max_width = 600
-st.write(f"<div style='max-width: {max_width}px;'>", unsafe_allow_html=True)
+    db_api = st.session_state.db_api
+    db_configs = db_api.get_configurations()
+    if not db_configs:
+        st.error(
+            "No database configurations found. Please add a configuration in the config page."
+        )
+        return
+    config_options = {
+        f"Configuration {id + 1} - {config.database_name}": id
+        for id, config in db_configs
+    }
+    selected_config = st.sidebar.selectbox(
+        "Select Database Configuration", options=list(config_options.keys())
+    )
 
-selected_file = st.selectbox("Select a file to view its content", schema_files)
+    on = st.toggle("Include in Opensearch")
+    st.button(
+        "Start Extract", type="secondary", use_container_width=True, on_click=extract
+    )
 
-if selected_file:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_dir = os.path.join(script_dir, "../../schema")
-    file_path = os.path.join(output_dir, selected_file)
-    file_size = get_file_size(file_path)
+    # List the schema files
+    schema_files = doc_extract_api.get_schema_list()
 
-    st.write(f"Selected File: {selected_file} - {file_size}")
+    selected_file = st.selectbox("Select a file to view its content", schema_files)
 
-    st.divider()
-    display_file_content(file_path)
-    st.divider()
-    # with st.expander(f"Content of {selected_file}"):
+    if selected_file:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        output_dir = os.path.join(script_dir, "../../schema")
+        file_path = os.path.join(output_dir, selected_file)
+        file_size = get_file_size(file_path)
 
-st.write("</div>", unsafe_allow_html=True)
+        st.write(f"Selected File: {selected_file} - {file_size}")
+
+        st.divider()
+        display_file_content(file_path)
+        st.divider()
+
+
+main()
