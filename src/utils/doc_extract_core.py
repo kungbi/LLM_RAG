@@ -162,11 +162,11 @@ def start(db_info: DB_Configuration):
     status_text = st.empty()
 
     max_size = len(database_info)
-    i = 0
+    i = 1
     for table, info in database_info.items():
-        my_progress_bar.progress(i)
-        status_text.text(f"{table}: {progress_text} {i}%")
-        time.sleep(1)
+        percent = i / max_size
+        my_progress_bar.progress(percent)
+        status_text.text(f"{table} Table: {progress_text} {int(percent * 100)}%")
 
         table_str = table_info_to_string(table, info)
 
@@ -175,7 +175,9 @@ def start(db_info: DB_Configuration):
         path = os.path.join(output_dir, f"{table}.txt")
 
         # LLM schema explanation logic
-        text = db_explain.generate_db_explain(table_str)
+        # text = db_explain.generate_db_explain(table_str)
+        time.sleep(1)
+        text = table_str
 
         with open(path, "w") as file:
             file.write(text)
@@ -185,24 +187,3 @@ def start(db_info: DB_Configuration):
     status_text.success("Operation complete!", icon="✅")
     my_progress_bar.empty()
     st.balloons()
-    st.rerun()
-
-    # with st.status("Extract data...", expanded=True) as status:
-
-    #     for table, info in database_info.items():
-    #         st.write(f"{table}...")
-    #         table_str = table_info_to_string(table, info)
-
-    #         script_dir = os.path.dirname(os.path.abspath(__file__))
-    #         output_dir = os.path.join(script_dir, "../../schema")
-    #         path = os.path.join(output_dir, f"{table}.txt")
-
-    #         # LLM schema explanation logic
-    #         # text = db_explain.generate_db_explain(table_str)
-    #         text = table_str
-
-    #         with open(path, "w") as file:
-    #             file.write(text)
-
-    #     status.update(label="Extract complete!", state="complete", expanded=False)
-    #     st.balloons()
