@@ -6,7 +6,7 @@ data
 
 root-ca.pem
 
-.DB_Store
+.DS_Store
 .idea
 .idea/LLM_RAG.iml
 .idea/inspectionProfiles/Project_Default.xml
