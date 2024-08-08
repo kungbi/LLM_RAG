@@ -198,3 +198,83 @@ def generate_conversation(query: str):
 
     """
     return template
+
+def generate_db_description(schema:str):
+    template = f"""
+    You are a MSSQL expert.
+
+    Please provide a comprehensive description of this database table. 
+    
+    ===Table Schema
+    {schema}
+    
+    Your description should include:
+
+    1. The purpose and main features of the table
+    2. A detailed explanation of each column, its data type, and its significance
+    3. The relationship between this table and others (based on the foreign key)
+    4. Potential use cases for querying this table
+    5. Any patterns or insights you can derive from the sample data
+    
+    In addition, please provide guidance on how to use this description for creating SQL queries:
+    
+    6. Explain how the table structure can inform the selection of columns in SELECT statements
+    7. Describe how the foreign key relationship can be used for JOIN operations
+    8. Suggest potential WHERE clause conditions based on the column types and sample data
+    9. Explain how the Credits column might be used for aggregation or filtering
+    10. Discuss how the Title column could be used for text-based searches or grouping
+    
+    Your description and guidance should be detailed enough to help a database administrator or developer understand 
+    the table's structure and create effective SQL scripts for data retrieval and analysis, without actually writing 
+    the SQL queries.
+    
+    By following this guidance, you'll be able to generate SQL queries that are both syntactically correct,
+    and contextually relevant to the database structure and content.
+        
+    
+    ===Response Format
+    {{
+        "description" : "
+        
+        The purpose of the table:
+        The table is or managing academic courses within an educational institution,
+        particularly those that are organized by department. It stores essential details about each course, 
+        facilitating efficient access and querying.
+
+        Columns Description:
+        1. Column Name: Description of column
+        2. Column Name: Description of column
+        3. Column Name: Description of column
+        
+        Table Relationships:
+        The Course table is joined with the Department table through the FK_Course_Department constraint, 
+        represented by the DepartmentID. 
+        This means every course listed has been associated with at least one department, 
+        providing a hierarchical structure where courses are categorized within departments. 
+        This relationship allows for more complex queries like retrieving all courses offered in specific departments.
+
+        Data Insights:
+        From the sample data, we notice a broad spectrum of courses covering areas from humanities literature, poetry
+         to sciences (Calculus, Physics).
+        This indicates an institution with diverse academic programs across multiple departments. 
+        The presence of both 2-credit and 4-credit courses suggests flexibility in course lengths.
+
+        SQL Query Guidance:
+        1. Selecting columns: Given the diverse fields present (like `LastName`, `FirstName`, etc.), 
+        choosing columns depends on the query's purpose. For example:
+        ```sql
+        SELECT PersonID, LastName, FirstName, EnrollmentDate FROM dbo.Person WHERE Department = 'English';
+        ```
+       
+         2. JOIN operations using foreign key: Without specifics of related tables, 
+         assuming there is a foreign key relationship (not shown in this snippet), 
+         JOINs could be used to link `Person` records with department-specific details:
+         ```sql
+         SELECT P.PersonID, D.DepartmentName FROM dbo.Person AS P JOIN dbo.Department AS D ON P.DepartmentID = D.DepartmentID;
+         ```
+        "
+    }}    
+    
+    """
+
+    return template
