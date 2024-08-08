@@ -11,9 +11,9 @@ Time (type: smalldatetime, length: nan, nullable: NO, default: None)
 FK_OnsiteCourse_Course: CourseID -> Course.CourseID
 
 ======= Data (10 random rows) =======
-{'CourseID': 2042, 'Location': '225 Adams', 'Days': 'MTWH', 'Time': Timestamp('1900-01-01 11:00:00')}
-{'CourseID': 4022, 'Location': '23 Williams', 'Days': 'MWF', 'Time': Timestamp('1900-01-01 09:00:00')}
+{'CourseID': 4061, 'Location': '22 Williams', 'Days': 'TH', 'Time': Timestamp('1900-01-01 11:15:00')}
 {'CourseID': 1045, 'Location': '121 Smith', 'Days': 'MWHF', 'Time': Timestamp('1900-01-01 15:30:00')}
+{'CourseID': 4022, 'Location': '23 Williams', 'Days': 'MWF', 'Time': Timestamp('1900-01-01 09:00:00')}
 {'CourseID': 1050, 'Location': '123 Smith', 'Days': 'MTWH', 'Time': Timestamp('1900-01-01 11:30:00')}
 {'CourseID': 1061, 'Location': '234 Smith', 'Days': 'TWHF', 'Time': Timestamp('1900-01-01 13:15:00')}
-{'CourseID': 4061, 'Location': '22 Williams', 'Days': 'TH', 'Time': Timestamp('1900-01-01 11:15:00')}
+{'CourseID': 2042, 'Location': '225 Adams', 'Days': 'MTWH', 'Time': Timestamp('1900-01-01 11:00:00')}

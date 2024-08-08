@@ -12,13 +12,13 @@ FK_StudentGrade_Course: CourseID -> Course.CourseID
 FK_StudentGrade_Student: StudentID -> Person.PersonID
 
 ======= Data (10 random rows) =======
-{'EnrollmentID': 15, 'CourseID': 4061, 'StudentID': 12, 'Grade': nan}
-{'EnrollmentID': 31, 'CourseID': 1061, 'StudentID': 24, 'Grade': 4.0}
-{'EnrollmentID': 7, 'CourseID': 2021, 'StudentID': 7, 'Grade': 3.5}
-{'EnrollmentID': 14, 'CourseID': 4041, 'StudentID': 12, 'Grade': nan}
-{'EnrollmentID': 20, 'CourseID': 4022, 'StudentID': 15, 'Grade': 2.5}
-{'EnrollmentID': 13, 'CourseID': 4041, 'StudentID': 11, 'Grade': 2.5}
-{'EnrollmentID': 29, 'CourseID': 4022, 'StudentID': 23, 'Grade': 3.0}
-{'EnrollmentID': 36, 'CourseID': 1045, 'StudentID': 28, 'Grade': 2.5}
-{'EnrollmentID': 16, 'CourseID': 4022, 'StudentID': 14, 'Grade': 3.0}
+{'EnrollmentID': 35, 'CourseID': 1061, 'StudentID': 27, 'Grade': 3.0}
 {'EnrollmentID': 3, 'CourseID': 2021, 'StudentID': 3, 'Grade': 3.0}
+{'EnrollmentID': 10, 'CourseID': 2042, 'StudentID': 8, 'Grade': 3.0}
+{'EnrollmentID': 20, 'CourseID': 4022, 'StudentID': 15, 'Grade': 2.5}
+{'EnrollmentID': 31, 'CourseID': 1061, 'StudentID': 24, 'Grade': 4.0}
+{'EnrollmentID': 40, 'CourseID': 1061, 'StudentID': 30, 'Grade': 4.0}
+{'EnrollmentID': 14, 'CourseID': 4041, 'StudentID': 12, 'Grade': nan}
+{'EnrollmentID': 24, 'CourseID': 4061, 'StudentID': 20, 'Grade': 4.0}
+{'EnrollmentID': 37, 'CourseID': 1050, 'StudentID': 28, 'Grade': 3.5}
+{'EnrollmentID': 9, 'CourseID': 2021, 'StudentID': 8, 'Grade': 3.0}
