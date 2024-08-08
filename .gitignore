@@ -3,6 +3,7 @@
 
 __pycache__
 data
+schema
 
 root-ca.pem
 
