@@ -3,6 +3,9 @@ import os
 import sys
 from sqlalchemy import create_engine
 from utils.db_api import DB_Configuration
+from utils import db_explain
+import streamlit as st
+import time
 
 
 def get_engine(db_info: DB_Configuration):
@@ -154,12 +157,31 @@ def start(db_info: DB_Configuration):
                 print(f"Could not retrieve data from table {schema}.{table}: {e}")
                 database_info[table_key]["data"] = []
 
+    my_progress_bar = st.progress(0)
+    progress_text = "Operation in progress. Please wait. ⏳"
+    status_text = st.empty()
+
+    max_size = len(database_info)
+    i = 1
     for table, info in database_info.items():
+        percent = i / max_size
+        my_progress_bar.progress(percent)
+        status_text.text(f"{table} Table: {progress_text} {int(percent * 100)}%")
+
         table_str = table_info_to_string(table, info)
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
         output_dir = os.path.join(script_dir, "../../schema")
         path = os.path.join(output_dir, f"{table}.txt")
 
+        # LLM schema explanation logic
+        text = db_explain.generate_db_explain(table_str)
+
         with open(path, "w") as file:
-            file.write(table_str)
+            file.write(text)
+
+        i += 1
+
+    status_text.success("Operation complete!", icon="✅")
+    my_progress_bar.empty()
+    st.balloons()

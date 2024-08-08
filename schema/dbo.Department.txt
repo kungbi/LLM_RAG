@@ -14,5 +14,5 @@ Administrator (type: int, length: nan, nullable: YES, default: None)
 ======= Data (10 random rows) =======
 {'DepartmentID': 1, 'Name': 'Engineering', 'Budget': 350000.0, 'StartDate': Timestamp('2007-09-01 00:00:00'), 'Administrator': 2}
 {'DepartmentID': 4, 'Name': 'Economics', 'Budget': 200000.0, 'StartDate': Timestamp('2007-09-01 00:00:00'), 'Administrator': 4}
-{'DepartmentID': 7, 'Name': 'Mathematics', 'Budget': 250000.0, 'StartDate': Timestamp('2007-09-01 00:00:00'), 'Administrator': 3}
 {'DepartmentID': 2, 'Name': 'English', 'Budget': 120000.0, 'StartDate': Timestamp('2007-09-01 00:00:00'), 'Administrator': 6}
+{'DepartmentID': 7, 'Name': 'Mathematics', 'Budget': 250000.0, 'StartDate': Timestamp('2007-09-01 00:00:00'), 'Administrator': 3}
