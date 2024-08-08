@@ -17,6 +17,18 @@ from utils.router_api import semantic_layer
 from utils import prompts
 from utils.chatapi import ChatAPI
 
+st.markdown(
+    """
+    <style>
+        section[data-testid="stSidebar"] {
+            width: 300px !important; # Set the width to your desired value
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
 def main():
     st.title("💬 Text2SQL")
     st.caption(f"🚀 A Streamlit chatbot powered by {LLM_ENV.LLM_MODEL}")
@@ -34,11 +46,13 @@ def main():
     if "opensearch" not in st.session_state:
         st.session_state.opensearch = opensearch_api.connect()
     opensearch = st.session_state.opensearch
+    # opensearch = opensearch_api.connect()
 
-    client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
+    if "client" not in st.session_state:
+        st.session_state.client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
+    client = st.session_state.client
 
     tokenlimit = TokenLimit()
-
     if not tokenlimit.is_available_history(memoryManager.get_full_conversation_history()):
         memoryManager.summarize_and_update_buffer()
 
@@ -93,6 +107,20 @@ def main():
         "Select Database Configuration", options=list(config_options.keys())
     )
 
+    doc_selection_options = [":rainbow[**Uploaded document**]", "**Extracted schema**"]
+    doc_selection_options_dict = {key:i for i, key in enumerate(doc_selection_options)}
+    doc_selection_option_start = doc_selection_options_dict[st.session_state['doc_selection']] if 'doc_selection' in st.session_state else 0 
+    st.session_state['doc_selection'] = st.sidebar.radio(
+        "Which document do you want to use?",
+        doc_selection_options,
+        captions=[
+            "Documents uploaded from the Upload page.",
+            "Schema documents extracted from DB schema.",
+        ],
+        disabled=True if "extracted" not in st.session_state or st.session_state == False else False,
+        index=doc_selection_option_start
+    ) 
+
     if prompt := st.chat_input():
         start_time = time.time()
         
@@ -104,15 +132,21 @@ def main():
             st.markdown(prompt)
             memoryManager.add_user_message_to_memory(prompt)
 
-        # opensearch
-        query = build_search_query(query_embedding=opensearch.encode(prompt))
-        response = opensearch.search(INDEX_NAME, query)
-        response = (
-            response.get("aggregations", {})
-            .get("group_by_filename", {})
-            .get("buckets", [])
-        )
-        relev_docs = [data["key"] for data in response]
+        doc_selection = st.session_state['doc_selection'] if 'doc_selection' in st.session_state else 0
+        if doc_selection == doc_selection_options[0]:
+            query = build_search_query(query_embedding=opensearch.encode(prompt))
+            response = opensearch.search(INDEX_NAME, query)
+            response = (
+                response.get("aggregations", {})
+                .get("group_by_filename", {})
+                .get("buckets", [])
+            )
+            relev_docs = [data["key"] for data in response]
+        else:
+            response = opensearch.search_schema(prompt)
+            relev_docs = [data["key"] for data in response]
+
+
         text = merge_text_files(relev_docs)
 
         splited_text = tokenlimit.split_document_by_tokens(text)
