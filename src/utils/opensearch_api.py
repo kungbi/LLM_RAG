@@ -31,7 +31,6 @@ class SearchAPI:
 
     def index_document_chunk(self, index_name, filename, text):
         chunks = chunk_sentences(text)
-        print(chunks)
         for i, chunk in enumerate(chunks):
             embedding = self.encode(chunk)
             action = opensearch_query.build_index_query(filename, chunk, embedding)
@@ -39,6 +38,17 @@ class SearchAPI:
 
     def search(self, index_name, search_body):
         return self.client.search(index=index_name, body=search_body)
+
+    def search_schema(self, query):
+        query_embedding = self.encode(query)
+        search_body = opensearch_query.build_search_query_schema(query_embedding)
+        response = self.client.search(index="database_schema", body=search_body)
+        response = (
+            response.get("aggregations", {})
+            .get("group_by_filename", {})
+            .get("buckets", [])
+        )
+        return response
 
     def get_client(self):
         return self.client

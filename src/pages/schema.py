@@ -4,13 +4,18 @@ from utils import opensearch_api
 from utils import doc_extract_api
 from utils.db_api import DBAPI, DB_Configuration
 
-db_api: DBAPI = st.session_state.db_api
+db_api = None
+if "db_api" in st.session_state:
+    db_api: DBAPI = st.session_state.db_api
 
 
 def extract(id: int):
-    db_info = db_api.get_configuration(id)
-
-    doc_extract_api.start_extract(db_info)
+    try:
+        db_info = db_api.get_configuration(id)
+        doc_extract_api.start_extract(db_info)
+        st.session_state["extracted"] = True
+    except:
+        st.session_state["extracted"] = False
 
 
 def display_file_content(file_path):
@@ -32,8 +37,14 @@ def main():
 
     st.title("DB Schema Extraction")
 
-    db_configs = db_api.get_configurations()
-    if not db_configs:
+    db_error = False
+    if db_api == None:
+        db_error = True
+    else:
+        db_configs = db_api.get_configurations()
+        if not db_configs:
+            db_error = True
+    if db_error:
         st.error(
             "No database configurations found. Please add a configuration in the config page."
         )
@@ -46,16 +57,6 @@ def main():
         "Select Database Configuration", options=list(config_options.keys())
     )
 
-    print()
-
-    st.session_state["db_schema_toggle"] = st.toggle(
-        "Include in Opensearch",
-        value=(
-            st.session_state["db_schema_toggle"]
-            if "db_schema_toggle" in st.session_state
-            else False
-        ),
-    )
     st.button(
         "Start Extract",
         type="secondary",
@@ -63,6 +64,9 @@ def main():
         on_click=extract,
         args=(config_options[selected_config],),
     )
+
+    if "extracted" not in st.session_state or st.session_state == False:
+        return
 
     schema_files = doc_extract_api.get_schema_list()
 
