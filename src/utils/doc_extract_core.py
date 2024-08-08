@@ -175,9 +175,7 @@ def start(db_info: DB_Configuration):
         path = os.path.join(output_dir, f"{table}.txt")
 
         # LLM schema explanation logic
-        # text = db_explain.generate_db_explain(table_str)
-        time.sleep(1)
-        text = table_str
+        text = db_explain.generate_db_explain(table_str)
 
         with open(path, "w") as file:
             file.write(text)
