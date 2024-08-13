@@ -31,19 +31,39 @@ st.markdown(
 )
 
 
+
 def main():
     st.title("💬 Text2SQL")
     st.caption(f"🚀 A Streamlit chatbot powered by {LLM_ENV.LLM_MODEL}")
+
+    if "session_list" not in st.session_state:
+        st.session_state.session_list = [1]
+
+    option = st.selectbox(
+        "Current Chats",
+        st.session_state.session_list,
+        index=0,
+        placeholder="Select contact method...",
+    )
+
+    def new_chat():
+        st.session_state.session_list.append(len(st.session_state.session_list)+1)
+
+    st.button('New Chat',on_click=new_chat)
+
+
+    current_tab = option
+
 
     # st.session_state를 사용하여 history 상태 유지
     # if "history" not in st.session_state:
     #     st.session_state.history = []
 
-    if "memory_manager" not in st.session_state:
-        st.session_state.memory_manager = ConversationManager()
-    memoryManager = st.session_state.memory_manager
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    if f"memory_manager_{current_tab}" not in st.session_state:
+        st.session_state[f"memory_manager_{current_tab}"] = ConversationManager()
+    memoryManager = st.session_state[f"memory_manager_{current_tab}"]
+    if f"messages_{current_tab}" not in st.session_state:
+        st.session_state[f"messages_{current_tab}"] = []
 
     if "opensearch" not in st.session_state:
         st.session_state.opensearch = opensearch_api.connect()
@@ -59,7 +79,7 @@ def main():
         memoryManager.summarize_and_update_buffer()
 
     # Display chat history
-    for message in st.session_state.messages:
+    for message in st.session_state[f"messages_{current_tab}"]:
         with st.chat_message(message["role"]):
             if message["role"] == "user":
                 st.markdown(message["content"])
@@ -126,7 +146,7 @@ def main():
     if prompt := st.chat_input():
         start_time = time.time()
         
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state[f"messages_{current_tab}"].append({"role": "user", "content": prompt})
         
         context = memoryManager.get_full_conversation_history()
 
@@ -194,7 +214,7 @@ def main():
                 full_response["gen_conv"] = gen_answer
 
                 message = {"role": "assistant", "content": full_response}
-                st.session_state.messages.append(message)
+                st.session_state[f"messages_{current_tab}"].append(message)
 
                 memoryManager.add_ai_response_to_memory(gen_answer)
                 end_time = time.time()
@@ -289,7 +309,7 @@ def main():
 
                     full_responses.append(full_response)
                     message = {"role": "assistant", "content": full_response}
-                    st.session_state.messages.append(message)
+                    st.session_state[f"messages_{current_tab}"].append(message)
 
                     num += 1
 
