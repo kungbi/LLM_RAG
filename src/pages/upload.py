@@ -14,6 +14,8 @@ opensearch = st.session_state.opensearch
 opensearch.create_index(INDEX_NAME)
 
 
+
+
 # 파일 읽기 함수
 def read_file(file):
     if file.type == "text/plain":

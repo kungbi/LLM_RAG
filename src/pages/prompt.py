@@ -36,23 +36,32 @@ def main():
     st.title("💬 Text2SQL")
     st.caption(f"🚀 A Streamlit chatbot powered by {LLM_ENV.LLM_MODEL}")
 
+
     if "session_list" not in st.session_state:
-        st.session_state.session_list = [1]
+        st.session_state.session_list = ["1"]
 
-    option = st.selectbox(
-        "Current Chats",
-        st.session_state.session_list,
-        index=0,
-        placeholder="Select contact method...",
-    )
+    with st.sidebar:
+        def new_chat():
+            new_chat_number = f"{(len(st.session_state.session_list) + 1)}"
+            st.session_state.session_list.append(new_chat_number)
+            st.write(f"New Chat {new_chat_number} created!")
 
-    def new_chat():
-        st.session_state.session_list.append(len(st.session_state.session_list)+1)
+        st.button('New Chat', on_click=new_chat)
 
-    st.button('New Chat',on_click=new_chat)
+        option = st.selectbox(
+            "Select Chat",
+            st.session_state.session_list,
+            index=0,
+            placeholder="Select chat..."
+        )
 
+        for chat in st.session_state.session_list:
+            st.write(f"Chat {chat}")
 
     current_tab = option
+
+    # 메인 영역에 현재 선택된 채팅 표시
+    st.write(f"Current Chat: {current_tab}")
 
 
     # st.session_state를 사용하여 history 상태 유지
@@ -108,40 +117,48 @@ def main():
                     st.markdown(f"##### SQL Generation Fail")
                     st.markdown(content["message"])
 
-    if "db_api" not in st.session_state:
+    if f"db_api_{current_tab}" not in st.session_state:
         st.error(
             "Database configuration not found. Please set up the database in the config page first."
         )
         return
 
-    db_api = st.session_state.db_api
+    db_api = st.session_state[f"db_api_{current_tab}"]
     db_configs = db_api.get_configurations()
     if not db_configs:
         st.error(
             "No database configurations found. Please add a configuration in the config page."
         )
         return
-    config_options = {
-        f"Configuration {id + 1} - {config.database_name}": id
+
+    config_options={
+        f"Configuration{id+1} - {config.database_name}": id
         for id, config in db_configs
     }
-    selected_config = st.sidebar.selectbox(
-        "Select Database Configuration", options=list(config_options.keys())
-    )
+    selected_config=list(config_options.keys())[-1]
+    # config_options = {
+    #     f"Configuration {id + 1} - {config.database_name}": id
+    #     for id, config in db_configs
+    # }
 
+
+    # selected_config = st.sidebar.selectbox(
+    #     "Select Database Configuration", options=list(config_options.keys())
+    # )
+    #
     doc_selection_options = [":rainbow[**Uploaded document**]", "**Extracted schema**"]
-    doc_selection_options_dict = {key:i for i, key in enumerate(doc_selection_options)}
-    doc_selection_option_start = doc_selection_options_dict[st.session_state['doc_selection']] if 'doc_selection' in st.session_state else 0 
-    st.session_state['doc_selection'] = st.sidebar.radio(
-        "Which document do you want to use?",
-        doc_selection_options,
-        captions=[
-            "Documents uploaded from the Upload page.",
-            "Schema documents extracted from DB schema.",
-        ],
-        disabled=True if "extracted" not in st.session_state or st.session_state == False else False,
-        index=doc_selection_option_start
-    ) 
+    # doc_selection_options_dict = {key:i for i, key in enumerate(doc_selection_options)}
+    # doc_selection_option_start = doc_selection_options_dict[st.session_state['doc_selection']] if 'doc_selection' in st.session_state else 0
+    # st.session_state['doc_selection'] = st.sidebar.radio(
+    #     "Which document do you want to use?",
+    #     doc_selection_options,
+    #     captions=[
+    #         "Documents uploaded from the Upload page.",
+    #         "Schema documents extracted from DB schema.",
+    #     ],
+    #     disabled=True if "extracted" not in st.session_state or st.session_state == False else False,
+    #     index=doc_selection_option_start
+    # )
 
     if prompt := st.chat_input():
         start_time = time.time()
@@ -154,7 +171,7 @@ def main():
             st.markdown(prompt)
             memoryManager.add_user_message_to_memory(prompt)
 
-        doc_selection = st.session_state['doc_selection'] if 'doc_selection' in st.session_state else 0
+        doc_selection = st.session_state[f'doc_selection_{current_tab}'] if 'doc_selection' in st.session_state else 0
         if doc_selection == doc_selection_options[0]:
             query = build_search_query(query_embedding=opensearch.encode(prompt))
             response = opensearch.search(INDEX_NAME, query)
@@ -222,7 +239,7 @@ def main():
                 st.markdown(f"{round(end_time - start_time, 2)}s")
 
             else:
-                response_generator = txt2sql(prompt, splited_text, config_options[selected_config], context)
+                response_generator = txt2sql(prompt, splited_text, config_options[selected_config], context, current_tab)
                 num = 1
                 full_responses = []
 
