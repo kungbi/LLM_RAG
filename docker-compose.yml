@@ -82,6 +82,11 @@ services:
       - ollama-models:/root/.ollama/models
     networks:
       - opensearch-net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
 
   application:
     build:
