@@ -17,6 +17,7 @@ from utils.router_api import semantic_layer
 from utils import prompts
 from utils.chatapi import ChatAPI
 from utils.conv_save_local import MessageManager
+import os
 
 
 
@@ -37,9 +38,32 @@ def main():
     st.title("💬 Text2SQL")
     st.caption(f"🚀 A Streamlit chatbot powered by {LLM_ENV.LLM_MODEL}")
 
+    def get_chat_numbers(base_dir: str):
+        chat_numbers = []
+        try:
+            # base_dir에 있는 디렉토리만 필터링
+            folders = [folder for folder in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, folder))]
 
+            for folder in folders:
+                # "Chat_"으로 시작하는 폴더 이름에서 숫자 부분만 추출
+                if folder.startswith("Chat_"):
+                    try:
+                        # 숫자 추출 시도
+                        number = int(folder.split("_")[1])
+                        chat_numbers.append(str(number))
+                    except (IndexError, ValueError):
+                        # 예외 처리: 형식이 잘못된 경우 무시
+                        continue
+            return sorted(chat_numbers)  # 숫자를 정렬하여 반환
+        except Exception as e:
+            st.error(f"Failed to list directories: {e}")
+            return []
+
+    # 세션 초기화
     if "session_list" not in st.session_state:
-        st.session_state.session_list = ["1"]
+        # ./conv/ 경로에서 Chat_ 폴더의 숫자만 가져오기
+        conv_dir = "./conv"
+        st.session_state.session_list = get_chat_numbers(conv_dir)
 
     with st.sidebar:
         def new_chat():
