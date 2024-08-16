@@ -11,7 +11,7 @@ class TokenLimit:
             self.tokenizer: function = Qwen2Tokenizer.from_pretrained(
                 "Qwen/Qwen-tokenizer"
             )
-        elif "CodeLlama" in LLM_ENV.LLM_MODEL:
+        else:
             self.tokenizer: function = Qwen2Tokenizer.from_pretrained(
                 "Qwen/Qwen-tokenizer"
             )

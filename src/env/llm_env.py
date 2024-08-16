@@ -1,5 +1,7 @@
-LLM_URL = "http://localhost:1234/v1"
-LLM_MODEL = "TheBloke/CodeLlama-7B-Instruct-GGUF"
+# LLM_URL = "http://localhost:1234/v1"
+# LLM_URL = "http://localhost:11434/v1"
+LLM_URL = "http://ollama:11434/v1"
+LLM_MODEL = "qwen2:7b"
 LLM_MAX_TOKENS = 20000
 
 LLM_TEXT2SQL_DOCS_RATIO = 0.6

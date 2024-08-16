@@ -155,9 +155,10 @@ def main():
 
         with st.chat_message("assistant"):
 
-            route = semantic_layer(prompt)
+            # route = semantic_layer(prompt) # 잠시 주석처리
 
-            if route.name == 'GeneralConversationRouter':
+            # if route.name == 'GeneralConversationRouter':
+            if False:
                 prompt_template = prompts.generate_conversation(prompt)
                 response = client.send_request(prompt_template)
                 full_response = {
@@ -275,7 +276,7 @@ def main():
                                 st.code(full_response["answer"], language="text")
 
                             else:
-                                full_response["message"] = f"An error occurred: {db_execute_result["error"]}"
+                                full_response["message"] = f"An error occurred: {db_execute_result['error']}"
 
                         except Exception as e:
                             full_response["message"] = f"An error occurred: {e}"

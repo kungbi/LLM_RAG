@@ -2,13 +2,17 @@ from langchain.chains import LLMChain
 from openai import OpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import PromptTemplate
-
+from env import llm_env as LLM_ENV
 from utils.token_limit import TokenLimit
 
 
 class ChatAPI:
     def __init__(self, url, model):
+        url = LLM_ENV.LLM_URL
+        model = LLM_ENV.LLM_MODEL
+        print(f"url: {url}")
         self.client = OpenAI(api_key="lm-studio", base_url=url)
+        print("연결완료")
         self.model = model
         self.memory = ConversationBufferMemory()
         self.token_limit = TokenLimit()
@@ -37,11 +41,11 @@ class ChatAPI:
             yield chunk
 
     def send_request(self, message):
-        # print(f"message: {message}")
+        print(f"message: {message}")
         if not self.token_limit.is_available_full_request(message):
             return "Token limit exceeded."
         response = self.client.chat.completions.create(
-            model="Qwen/Qwen2-7B-Instruct-GGUF/qwen2-7b-instruct-q4_0.gguf",
+            model=self.model,
             messages=[
                 {
                     "role": "system",

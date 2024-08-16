@@ -1,4 +1,5 @@
-OPENSEARCH_HOST = "localhost"
+OPENSEARCH_HOST = "opensearch-node1"
+# OPENSEARCH_HOST = "localhost"
 OPENSEARCH_PORT = 9200
 OPENSEARCH_USR = "admin"
 OPENSEARCH_PWD = "StrongPassword123!"
