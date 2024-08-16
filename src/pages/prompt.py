@@ -16,6 +16,7 @@ import time
 from utils.router_api import semantic_layer
 from utils import prompts
 from utils.chatapi import ChatAPI
+from utils.conv_save_local import MessageManager
 
 
 
@@ -44,7 +45,8 @@ def main():
         def new_chat():
             new_chat_number = f"{(len(st.session_state.session_list) + 1)}"
             st.session_state.session_list.append(new_chat_number)
-            st.write(f"New Chat {new_chat_number} created!")
+            st.session_state[f"messages_{new_chat_number}"] = []  # New chat 초기화
+            st.session_state[f"memory_manager_{new_chat_number}"] = ConversationManager()
 
         st.button('New Chat', on_click=new_chat)
 
@@ -68,11 +70,21 @@ def main():
     # if "history" not in st.session_state:
     #     st.session_state.history = []
 
+    # MessageManager 인스턴스 생성
+    message_manager = MessageManager()
+
     if f"memory_manager_{current_tab}" not in st.session_state:
         st.session_state[f"memory_manager_{current_tab}"] = ConversationManager()
+
     memoryManager = st.session_state[f"memory_manager_{current_tab}"]
+
     if f"messages_{current_tab}" not in st.session_state:
-        st.session_state[f"messages_{current_tab}"] = []
+        st.session_state[f"messages_{current_tab}"] = message_manager.load_messages(str(current_tab))
+        print("session empty")
+    # st.session_state[f"messages_{current_tab}"] = message_manager.load_messages(str(current_tab))
+    # print("session not empyty")
+
+    print("message:", st.session_state[f"messages_{current_tab}"] )
 
     if "opensearch" not in st.session_state:
         st.session_state.opensearch = opensearch_api.connect()
@@ -164,7 +176,9 @@ def main():
         start_time = time.time()
         
         st.session_state[f"messages_{current_tab}"].append({"role": "user", "content": prompt})
-        
+
+        message_manager.save_message(str(current_tab), {"role": "user", "content": prompt})
+
         context = memoryManager.get_full_conversation_history()
 
         with st.chat_message("user"):
@@ -232,6 +246,7 @@ def main():
 
                 message = {"role": "assistant", "content": full_response}
                 st.session_state[f"messages_{current_tab}"].append(message)
+                message_manager.save_message(str(current_tab), message)
 
                 memoryManager.add_ai_response_to_memory(gen_answer)
                 end_time = time.time()
@@ -327,6 +342,7 @@ def main():
                     full_responses.append(full_response)
                     message = {"role": "assistant", "content": full_response}
                     st.session_state[f"messages_{current_tab}"].append(message)
+                    message_manager.save_message(str(current_tab), message)
 
                     num += 1
 
