@@ -6,16 +6,12 @@ import pandas as pd
 import json
 from env.opensearch_env import INDEX_NAME
 
-# OpenSearch 연결
-if "opensearch" not in st.session_state:
-    st.session_state.opensearch = opensearch_api.connect()
 
-opensearch = st.session_state.opensearch
-opensearch.create_index(INDEX_NAME)
 
 # 세션 리스트 초기화
 if "session_list" not in st.session_state:
     st.session_state.session_list = [1]
+
 
 with st.sidebar:
     option = st.selectbox(
@@ -29,6 +25,14 @@ with st.sidebar:
         st.write(f"Chat {chat}")
 
 current_tab = option
+
+# OpenSearch 연결
+if "opensearch" not in st.session_state:
+    st.session_state.opensearch = opensearch_api.connect()
+
+INDEX_NAME=f"{INDEX_NAME}_{current_tab}"
+opensearch = st.session_state.opensearch
+opensearch.create_index(INDEX_NAME)
 
 # 메인 영역에 현재 선택된 채팅 표시
 st.write(f"Current Chat: {current_tab}")

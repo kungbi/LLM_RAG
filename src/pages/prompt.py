@@ -114,6 +114,7 @@ def main():
         st.session_state.opensearch = opensearch_api.connect()
     opensearch = st.session_state.opensearch
     # opensearch = opensearch_api.connect()
+    INDEX = f"{INDEX_NAME}_{current_tab}"
 
     if "client" not in st.session_state:
         st.session_state.client = ChatAPI(url=LLM_ENV.LLM_URL, model=LLM_ENV.LLM_MODEL)
@@ -212,7 +213,7 @@ def main():
         doc_selection = st.session_state[f'doc_selection_{current_tab}'] if 'doc_selection' in st.session_state else 0
         if doc_selection == doc_selection_options[0]:
             query = build_search_query(query_embedding=opensearch.encode(prompt))
-            response = opensearch.search(INDEX_NAME, query)
+            response = opensearch.search(INDEX, query)
             response = (
                 response.get("aggregations", {})
                 .get("group_by_filename", {})
