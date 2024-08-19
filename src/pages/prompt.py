@@ -18,6 +18,7 @@ from utils import prompts
 from utils.chatapi import ChatAPI
 from utils.conv_save_local import MessageManager
 import os
+import shutil
 
 
 
@@ -73,6 +74,19 @@ def main():
             st.session_state[f"memory_manager_{new_chat_number}"] = ConversationManager()
 
         st.button('New Chat', on_click=new_chat)
+
+        def clear_chat():
+            st.session_state[f"messages_{current_tab}"]=[]
+            st.session_state[f"memory_manager_{current_tab}"] = ConversationManager()
+            path=f"./conv/Chat_{current_tab}"
+            for filename in os.listdir(path):
+                file_path = os.path.join(path, filename)
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)  # 파일 삭제
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+
+        st.button('Clear Chat', on_click=clear_chat)
 
         option = st.selectbox(
             "Select Chat",
