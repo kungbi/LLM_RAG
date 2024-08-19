@@ -55,13 +55,13 @@ def refine_sql_script(question, text, error_history, context):
         return None
 
 
-def txt2sql(question, txt, id, context):
+def txt2sql(question, txt, id, context, current_tab):
     max_attempts = 2
     attempts = 0
     error_history = []
     sql_script = ""
 
-    db_api = st.session_state.db_api
+    db_api = st.session_state[f"db_api_{current_tab}"]
 
     while attempts < max_attempts:
         with st.spinner("Wait for it..."):

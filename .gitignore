@@ -4,6 +4,7 @@
 __pycache__
 data
 schema
+conv
 
 root-ca.pem
 
@@ -17,3 +18,5 @@ root-ca.pem
 .idea/workspace.xml
 
 .data
+
+./src/env/llma_env.py

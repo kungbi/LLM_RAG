@@ -37,7 +37,7 @@ general_conversation = Route(
         "good morning!"
         "who are you?"
         "what's your name?"
-        "how are"
+        "how are you?"
     ],
 )
 
@@ -75,6 +75,7 @@ def llama_context():
         del _llm
         del llm
         logger.info("Cleanup complete")
+
 
 def semantic_layer(query: str):
     logger.info("Starting main execution")

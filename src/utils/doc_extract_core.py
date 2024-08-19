@@ -120,7 +120,7 @@ def table_info_to_string(table_name, info):
     return table_str
 
 
-def start(db_info: DB_Configuration):
+def start(db_info: DB_Configuration, tab):
     engine = get_engine(db_info)
 
     table_info_df = execute_query(engine, table_info_query)
@@ -163,6 +163,7 @@ def start(db_info: DB_Configuration):
 
     max_size = len(database_info)
     i = 1
+    base_dir = f"./conv/Chat_{tab}/schema"  # 변경된 경로
     for table, info in database_info.items():
         percent = i / max_size
         my_progress_bar.progress(percent)
@@ -170,9 +171,7 @@ def start(db_info: DB_Configuration):
 
         table_str = table_info_to_string(table, info)
 
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        output_dir = os.path.join(script_dir, "../../schema")
-        path = os.path.join(output_dir, f"{table}.txt")
+        path = os.path.join(base_dir, f"{table}.txt")
 
         # LLM schema explanation logic
         text = db_explain.generate_db_explain(table_str)
